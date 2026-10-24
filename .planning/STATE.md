@@ -16,14 +16,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-24)
 
 **Core value:** Deliver an undetectable, sub-second latency real-time copilot HUD that captures both caller loopback audio and candidate microphone input, transcribes and diarizes live speech via Deepgram Nova-2, and streams context-aware answers and vision-based coding solutions from Claude without forfeiting OS focus or appearing in screen captures.
-**Current focus:** Phase 1: Turborepo Monorepo Scaffold & Stealth Electron Overlay Core
+**Current focus:** Phase 1: Monorepo Scaffold, Database Schema, Auth & Desktop Deep-Linking
 
 ## Current Position
 
-Phase: 1 of 6 (Turborepo Monorepo Scaffold & Stealth Electron Overlay Core)
+Phase: 1 of 6 (Monorepo Scaffold, Database Schema, Auth & Desktop Deep-Linking)
 Plan: 0 of 3 in current phase
-Status: Ready to plan Phase 1
-Last activity: 2026-10-24 — Initialized project context, research, requirements, and roadmap
+Status: Ready to execute Phase 1
+Last activity: 2026-10-24 — Planned Phase 1 (01-01, 01-02, 01-03)
 
 Progress: [------------] 0%
 
