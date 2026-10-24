@@ -1,0 +1,1 @@
+"use strict";const e=require("electron"),o={onAuthTokenReceived:r=>{const n=(i,t)=>r(t);return e.ipcRenderer.on("auth:token-received",n),()=>{e.ipcRenderer.removeListener("auth:token-received",n)}},getAppVersion:()=>e.ipcRenderer.invoke("app:version")};e.contextBridge.exposeInMainWorld("electronAPI",o);
