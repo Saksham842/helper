@@ -6,7 +6,7 @@ A phased journey to build a complete, production-grade Parakeet AI clone in a Tu
 
 ## Phases
 
-- [ ] **Phase 1: Monorepo Scaffold, Database Schema, Auth & Desktop Deep-Linking** - Setup Turborepo (`apps/web`, `apps/desktop`, `packages/shared`), Supabase migrations with RLS (`profiles`, `sessions`, `documents`, `transcripts`, `ai_responses`, `credit_transactions`), Google/Email Auth, `copilot://auth` desktop deep-linking, strict Zod env validation, and Playwright smoke test.
+- [x] **Phase 1: Monorepo Scaffold, Database Schema, Auth & Desktop Deep-Linking** - Setup Turborepo (`apps/web`, `apps/desktop`, `packages/shared`), Supabase migrations with RLS (`profiles`, `sessions`, `documents`, `transcripts`, `ai_responses`, `credit_transactions`), Google/Email Auth, `copilot://auth` desktop deep-linking, strict Zod env validation, and Playwright smoke test.
 - [ ] **Phase 2: Stealth Electron HUD Overlay & Screen Protection Core** - Build transparent floating HUD overlay with `setContentProtection(true)` (Windows `WDA_EXCLUDEFROMCAPTURE` & macOS `NSWindowSharingNone`), anti-blur focus neutrality (`focusable: false`, `alwaysOnTop: true`), click-through mode, and OS global hotkeys (`globalShortcut`).
 - [ ] **Phase 3: Native Dual-Channel Audio Pipeline & Deepgram Nova-2 Streaming** - Capture system loopback audio (WASAPI/CoreAudio) and microphone natively without browser recording banners; stream linear16 PCM to Deepgram Nova-2 with real-time speaker diarization.
 - [ ] **Phase 4: Real-Time AI Answer Engine & Silent Vision Problem Solver** - Stream sub-second Claude 3.5 answers with resume context and solve coding challenges from silent desktop screenshots (`desktopCapturer`).
@@ -29,9 +29,9 @@ A phased journey to build a complete, production-grade Parakeet AI clone in a Tu
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: Turborepo monorepo scaffold (`apps/web`, `apps/desktop`, `packages/shared`), pnpm workspace configuration, and strict TypeScript/Zod presets.
-- [ ] 01-02: Supabase database schema migrations with RLS, triggers, typed database client, and Next.js 15 App Router authentication (Google OAuth & Email/Password).
-- [ ] 01-03: Desktop custom protocol handler `copilot://auth` in Electron, web dashboard launch button with short-lived session token handoff, and Playwright smoke test.
+- [x] 01-01: Turborepo monorepo scaffold (`apps/web`, `apps/desktop`, `packages/shared`), pnpm workspace configuration, and strict TypeScript/Zod presets.
+- [x] 01-02: Supabase database schema migrations with RLS, triggers, typed database client, and Next.js 15 App Router authentication (Google OAuth & Email/Password).
+- [x] 01-03: Desktop custom protocol handler `copilot://auth` in Electron, web dashboard launch button with short-lived session token handoff, and Playwright smoke test.
 
 ### Phase 2: Stealth Electron HUD Overlay & Screen Protection Core
 **Goal**: Deliver an operational, screen-share invisible, anti-blur Electron desktop HUD with global hotkey controls.
@@ -122,7 +122,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Monorepo Scaffold, Database Schema, Auth & Desktop Deep-Linking | 0/3 | In progress | - |
+| 1. Monorepo Scaffold, Database Schema, Auth & Desktop Deep-Linking | 3/3 | Complete | 2026-10-24 |
 | 2. Stealth Electron HUD Overlay & Screen Protection Core | 0/3 | Not started | - |
 | 3. Native Dual-Channel Audio Pipeline & Deepgram Nova-2 Streaming | 0/3 | Not started | - |
 | 4. Real-Time AI Answer Engine & Silent Vision Problem Solver | 0/3 | Not started | - |

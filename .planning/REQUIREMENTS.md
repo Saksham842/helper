@@ -9,8 +9,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Architecture & Monorepo
 
-- [ ] **MONO-01**: Setup Turborepo monorepo with pnpm workspaces supporting `apps/web`, `apps/desktop`, `packages/shared-types`, and `packages/config`.
-- [ ] **MONO-02**: Establish strict TypeScript configurations (`noImplicitAny`), shared types, and unified build pipelines across all workspace packages.
+- [x] **MONO-01**: Setup Turborepo monorepo with pnpm workspaces supporting `apps/web`, `apps/desktop`, `packages/shared-types`, and `packages/config`.
+- [x] **MONO-02**: Establish strict TypeScript configurations (`noImplicitAny`), shared types, and unified build pipelines across all workspace packages.
 
 ### Stealth Desktop Overlay
 
@@ -35,9 +35,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Web Platform & Backend
 
-- [ ] **WEB-01**: Next.js 15 App Router web dashboard with modern dark/light UI, Google OAuth, and Email authentication via Supabase Auth.
+- [x] **WEB-01**: Next.js 15 App Router web dashboard with modern dark/light UI, Google OAuth, and Email authentication via Supabase Auth.
 - [ ] **WEB-02**: Document & Resume Vault supporting PDF and DOCX uploads with server-side text extraction and secure Supabase Storage.
-- [ ] **WEB-03**: Deep-link token handoff protocol (`parakeet://auth?token=...`) securely syncing web session credentials to the desktop client.
+- [x] **WEB-03**: Deep-link token handoff protocol (`parakeet://auth?token=...`) securely syncing web session credentials to the desktop client.
 - [ ] **WEB-04**: Interactive Voice AI Mock Interviewer simulating realistic interview rounds with speech interaction and automated transcript evaluation.
 - [ ] **WEB-05**: Post-call meeting analytics with automated AI summaries, action items, verbatim transcript history, and searchable question bank.
 
@@ -48,7 +48,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Quality, Security & Testing
 
-- [ ] **QUAL-01**: Zero TypeScript compiler errors (`tsc --noEmit`), strict ESLint rules, and Zod runtime schema validation for environment variables and API contracts.
+- [x] **QUAL-01**: Zero TypeScript compiler errors (`tsc --noEmit`), strict ESLint rules, and Zod runtime schema validation for environment variables and API contracts.
 - [ ] **QUAL-02**: Vitest unit and integration test suites covering audio processing, AI prompt construction, and billing webhooks.
 - [ ] **QUAL-03**: Playwright automated E2E test suites validating web dashboard workflows and Electron HUD invisibility/focus neutrality.
 
@@ -74,11 +74,11 @@ Which phases cover which requirements.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MONO-01 | Phase 1 | Pending |
-| MONO-02 | Phase 1 | Pending |
-| WEB-01 | Phase 1 | Pending |
-| WEB-03 | Phase 1 | Pending |
-| QUAL-01 | Phase 1 | Pending |
+| MONO-01 | Phase 1 | Complete |
+| MONO-02 | Phase 1 | Complete |
+| WEB-01 | Phase 1 | Complete |
+| WEB-03 | Phase 1 | Complete |
+| QUAL-01 | Phase 1 | Complete |
 | STLTH-01 | Phase 2 | Pending |
 | STLTH-02 | Phase 2 | Pending |
 | STLTH-03 | Phase 2 | Pending |
