@@ -28,10 +28,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### AI Answer & Coding Engine
 
-- [ ] **AI-01**: Automatic question detection heuristics trigger AI answers when the interviewer stops speaking, complemented by a manual instant hotkey prompt.
-- [ ] **AI-02**: Streaming answer generation powered by Claude 3.5 Sonnet / Haiku with full candidate resume context, target role description, and custom instructions (up to 20k characters).
-- [ ] **AI-03**: Silent full-screen capture triggered via global shortcut (`Ctrl/Cmd + Shift + H`) using `desktopCapturer.getSources({ types: ['screen'] })` without OS screenshot UI or clipboard alteration.
-- [ ] **AI-04**: Claude 3.5 Vision integration analyzes coding screenshots to solve DSA, LeetCode, HackerRank, and system design challenges with step-by-step code, explanation, and time/space complexity.
+- [x] **AI-01**: Automatic question detection heuristics trigger AI answers when the interviewer stops speaking, complemented by a manual instant hotkey prompt.
+- [x] **AI-02**: Streaming answer generation powered by Claude 3.5 Sonnet / Haiku with full candidate resume context, target role description, and custom instructions (up to 20k characters).
+- [x] **AI-03**: Silent full-screen capture triggered via global shortcut (`Ctrl/Cmd + Shift + H`) using `desktopCapturer.getSources({ types: ['screen'] })` without OS screenshot UI or clipboard alteration.
+- [x] **AI-04**: Claude 3.5 Vision integration analyzes coding screenshots to solve DSA, LeetCode, HackerRank, and system design challenges with step-by-step code, explanation, and time/space complexity.
 
 ### Web Platform & Backend
 
@@ -86,10 +86,10 @@ Which phases cover which requirements.
 | AUDIO-01 | Phase 3 | Complete |
 | AUDIO-02 | Phase 3 | Complete |
 | AUDIO-03 | Phase 3 | Complete |
-| AI-01 | Phase 4 | Pending |
-| AI-02 | Phase 4 | Pending |
-| AI-03 | Phase 4 | Pending |
-| AI-04 | Phase 4 | Pending |
+| AI-01 | Phase 4 | Complete |
+| AI-02 | Phase 4 | Complete |
+| AI-03 | Phase 4 | Complete |
+| AI-04 | Phase 4 | Complete |
 | BILL-01 | Phase 5 | Pending |
 | BILL-02 | Phase 5 | Pending |
 | WEB-02 | Phase 5 | Pending |

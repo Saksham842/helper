@@ -1,4 +1,4 @@
-import { app, BrowserWindow, screen, ipcMain } from 'electron';
+import { app, BrowserWindow, screen, ipcMain, desktopCapturer } from 'electron';
 import path from 'node:path';
 import type { HUDState } from '@parakeet/shared';
 
@@ -192,6 +192,22 @@ export class HUDWindowManager {
 
     ipcMain.on('hud:set-dynamic-ignore-mouse', (_event, ignore: boolean) => {
       this.setDynamicIgnoreMouse(ignore);
+    });
+
+    ipcMain.handle('screen:capture-silent', async () => {
+      try {
+        const sources = await desktopCapturer.getSources({
+          types: ['screen'],
+          thumbnailSize: { width: 1920, height: 1080 },
+        });
+        if (sources.length > 0) {
+          return sources[0].thumbnail.toDataURL();
+        }
+        throw new Error('No screen sources available for silent capture');
+      } catch (err: any) {
+        console.error('Silent screen capture error:', err);
+        throw err;
+      }
     });
   }
 }

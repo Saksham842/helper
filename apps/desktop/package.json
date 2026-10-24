@@ -8,7 +8,7 @@
     "build": "tsc && vite build",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
-    "test": "electron tests/stealth-verification.cjs && node tests/pcm-multiplexer.test.cjs"
+    "test": "electron tests/stealth-verification.cjs && node tests/pcm-multiplexer.test.cjs && node tests/question-detector.test.cjs && node tests/vision-capture.test.cjs"
   },
   "dependencies": {
     "@parakeet/shared": "workspace:*",

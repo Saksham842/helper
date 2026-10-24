@@ -1,0 +1,189 @@
+import React, { useState, useEffect } from 'react';
+import { aiAnswerEngine } from '../services/aiAnswerEngine';
+import { questionDetector } from '../services/questionDetector';
+import { Sparkles, Copy, Check, X, RefreshCw, AlertCircle } from 'lucide-react';
+
+export const AIAnswerCard: React.FC = () => {
+  const [question, setQuestion] = useState<string>('');
+  const [answer, setAnswer] = useState<string>('');
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [copied, setCopied] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // 1. Automatic Question Detection listener
+    const unsubDetector = questionDetector.onQuestion((detectedQuestion, recentContext) => {
+      setQuestion(detectedQuestion);
+      setError(null);
+      aiAnswerEngine.generateAnswer(detectedQuestion, recentContext);
+    });
+
+    // 2. Token-by-token streaming listener
+    const unsubToken = aiAnswerEngine.onToken((_token, fullText) => {
+      setAnswer(fullText);
+      setIsGenerating(true);
+    });
+
+    const unsubComplete = aiAnswerEngine.onComplete((fullText) => {
+      setAnswer(fullText);
+      setIsGenerating(false);
+    });
+
+    const unsubError = aiAnswerEngine.onError((err) => {
+      setError(err);
+      setIsGenerating(false);
+    });
+
+    return () => {
+      unsubDetector();
+      unsubToken();
+      unsubComplete();
+      unsubError();
+    };
+  }, []);
+
+  const handleCopy = () => {
+    if (answer) {
+      navigator.clipboard.writeText(answer);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleManualAsk = () => {
+    questionDetector.triggerManual();
+  };
+
+  const handleDismiss = () => {
+    aiAnswerEngine.cancel();
+    setQuestion('');
+    setAnswer('');
+    setError(null);
+    setIsGenerating(false);
+  };
+
+  if (!question && !answer && !isGenerating && !error) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '10px 12px',
+          borderRadius: '12px',
+          background: 'rgba(255, 255, 255, 0.02)',
+          border: '1px solid rgba(255, 255, 255, 0.06)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Sparkles size={14} color="#10b981" />
+          <span style={{ fontSize: '12px', color: '#a1a1aa' }}>
+            Listening for interviewer questions...
+          </span>
+        </div>
+        <button
+          onClick={handleManualAsk}
+          style={{
+            padding: '4px 10px',
+            borderRadius: '6px',
+            fontSize: '11px',
+            fontWeight: 600,
+            background: 'rgba(16, 185, 129, 0.15)',
+            color: '#34d399',
+            border: '1px solid rgba(16, 185, 129, 0.3)',
+            cursor: 'pointer',
+          }}
+        >
+          Ask AI Now
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+        padding: '12px',
+        borderRadius: '14px',
+        background: 'linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.03) 100%)',
+        border: '1px solid rgba(16, 185, 129, 0.3)',
+        boxShadow: '0 8px 24px rgba(16, 185, 129, 0.1)',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Sparkles size={14} color="#10b981" />
+          <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#34d399', letterSpacing: '0.04em' }}>
+            Live Answer Recommendation
+          </span>
+          {isGenerating && (
+            <span style={{ fontSize: '10px', color: '#fbbf24', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <RefreshCw size={10} className="animate-spin" />
+              Streaming...
+            </span>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <button
+            onClick={handleCopy}
+            disabled={!answer}
+            style={{
+              padding: '4px',
+              borderRadius: '6px',
+              background: 'rgba(255, 255, 255, 0.06)',
+              border: 'none',
+              color: '#d4d4d8',
+              cursor: 'pointer',
+            }}
+            title="Copy Answer"
+          >
+            {copied ? <Check size={12} color="#10b981" /> : <Copy size={12} />}
+          </button>
+          <button
+            onClick={handleDismiss}
+            style={{
+              padding: '4px',
+              borderRadius: '6px',
+              background: 'rgba(255, 255, 255, 0.06)',
+              border: 'none',
+              color: '#a1a1aa',
+              cursor: 'pointer',
+            }}
+            title="Dismiss"
+          >
+            <X size={12} />
+          </button>
+        </div>
+      </div>
+
+      {question && (
+        <div style={{ fontSize: '11px', fontWeight: 600, color: '#e4e4e7', fontStyle: 'italic', borderLeft: '2px solid #10b981', paddingLeft: '8px' }}>
+          "{question}"
+        </div>
+      )}
+
+      {error ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#f87171' }}>
+          <AlertCircle size={12} />
+          <span>{error}</span>
+        </div>
+      ) : (
+        <div
+          style={{
+            fontSize: '12px',
+            lineHeight: 1.5,
+            color: '#f4f4f5',
+            whiteSpace: 'pre-wrap',
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          }}
+        >
+          {answer || 'Generating sub-second answer with candidate context...'}
+        </div>
+      )}
+    </div>
+  );
+};

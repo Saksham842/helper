@@ -13,6 +13,7 @@ export interface ElectronAPI {
   setDynamicIgnoreMouse: (ignore: boolean) => void;
   onHUDStateChange: (callback: (state: HUDState) => void) => () => void;
   onHotkeyPressed: (callback: (action: string) => void) => () => void;
+  captureSilentScreenshot: () => Promise<string>;
 }
 
 const api: ElectronAPI = {
@@ -45,6 +46,7 @@ const api: ElectronAPI = {
       ipcRenderer.removeListener('hotkey:action', subscription);
     };
   },
+  captureSilentScreenshot: () => ipcRenderer.invoke('screen:capture-silent'),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', api);

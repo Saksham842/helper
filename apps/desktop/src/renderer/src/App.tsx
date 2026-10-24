@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { HUDOverlay } from './components/HUDOverlay';
 import { AuthStatus } from './components/AuthStatus';
 import { TranscriptFeed } from './components/TranscriptFeed';
+import { AIAnswerCard } from './components/AIAnswerCard';
+import { VisionSolutionCard } from './components/VisionSolutionCard';
 import { Terminal, Shield, Cpu, Activity } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -35,6 +37,12 @@ export const App: React.FC = () => {
           userEmail={authData.userEmail}
           token={authData.token}
         />
+
+        {/* Real-Time Coding Problem Vision Solver */}
+        <VisionSolutionCard />
+
+        {/* Sub-Second Streaming AI Answer Card */}
+        <AIAnswerCard />
 
         {/* Live Audio Pipeline & Deepgram Diarization Feed */}
         <TranscriptFeed />
