@@ -1,4 +1,4 @@
-import { app, ipcMain } from 'electron';
+import { app, ipcMain, session, desktopCapturer } from 'electron';
 import { registerCustomProtocol, handleDeepLinkUrl } from './protocol';
 import { HUDWindowManager } from './hud';
 import { registerGlobalShortcuts } from './shortcuts';
@@ -34,11 +34,34 @@ if (!gotTheLock) {
   });
 
   app.whenReady().then(() => {
+    // Silent permissions approval for loopback and microphone capture
+    session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => {
+      if (permission === 'media') {
+        callback(true);
+      } else {
+        callback(true);
+      }
+    });
+
+    session.defaultSession.setDisplayMediaRequestHandler((_request, callback) => {
+      desktopCapturer.getSources({ types: ['screen'] }).then((sources) => {
+        if (sources.length > 0) {
+          callback({ video: sources[0], audio: 'loopback' });
+        } else {
+          callback({});
+        }
+      }).catch((err) => {
+        console.error('Failed to get sources for loopback capture:', err);
+        callback({});
+      });
+    });
+
     hudManager = new HUDWindowManager();
     hudManager.createWindow();
     registerGlobalShortcuts(hudManager);
 
     ipcMain.handle('app:version', () => app.getVersion());
+
 
     // Check cold-start deep link on Windows
     const coldStartUrl = process.argv.find((arg) => arg.startsWith('copilot://'));

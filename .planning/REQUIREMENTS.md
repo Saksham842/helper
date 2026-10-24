@@ -22,9 +22,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Native Dual-Channel Audio Pipeline
 
-- [ ] **AUDIO-01**: Native loopback audio capture (WASAPI Loopback on Windows / ScreenCaptureKit or CoreAudio on macOS) grabs caller/interviewer voice without browser tab-sharing banners.
-- [ ] **AUDIO-02**: Microphone capture grabs candidate speech independently on a separate audio stream.
-- [ ] **AUDIO-03**: Dual-channel linear16 PCM audio streamed via WebSocket to Deepgram Nova-2 with real-time speaker diarization (Interviewer vs Candidate) and auto-reconnect logic.
+- [x] **AUDIO-01**: Native loopback audio capture (WASAPI Loopback on Windows / ScreenCaptureKit or CoreAudio on macOS) grabs caller/interviewer voice without browser tab-sharing banners.
+- [x] **AUDIO-02**: Microphone capture grabs candidate speech independently on a separate audio stream.
+- [x] **AUDIO-03**: Dual-channel linear16 PCM audio streamed via WebSocket to Deepgram Nova-2 with real-time speaker diarization (Interviewer vs Candidate) and auto-reconnect logic.
 
 ### AI Answer & Coding Engine
 
@@ -83,9 +83,9 @@ Which phases cover which requirements.
 | STLTH-02 | Phase 2 | Complete |
 | STLTH-03 | Phase 2 | Complete |
 | STLTH-04 | Phase 2 | Complete |
-| AUDIO-01 | Phase 3 | Pending |
-| AUDIO-02 | Phase 3 | Pending |
-| AUDIO-03 | Phase 3 | Pending |
+| AUDIO-01 | Phase 3 | Complete |
+| AUDIO-02 | Phase 3 | Complete |
+| AUDIO-03 | Phase 3 | Complete |
 | AI-01 | Phase 4 | Pending |
 | AI-02 | Phase 4 | Pending |
 | AI-03 | Phase 4 | Pending |

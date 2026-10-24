@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { HUDOverlay } from './components/HUDOverlay';
 import { AuthStatus } from './components/AuthStatus';
+import { TranscriptFeed } from './components/TranscriptFeed';
 import { Terminal, Shield, Cpu, Activity } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -35,29 +36,31 @@ export const App: React.FC = () => {
           token={authData.token}
         />
 
+        {/* Live Audio Pipeline & Deepgram Diarization Feed */}
+        <TranscriptFeed />
+
         {/* Live Copilot Status Card */}
         <div
           style={{
-            flex: 1,
-            borderRadius: '16px',
+            borderRadius: '14px',
             background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%)',
             border: '1px solid rgba(255, 255, 255, 0.07)',
             display: 'flex',
             flexDirection: 'column',
-            padding: '16px',
-            gap: '12px',
+            padding: '12px',
+            gap: '10px',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Activity size={16} color="#10b981" />
-              <span style={{ fontSize: '13px', fontWeight: 600, color: '#f4f4f5' }}>
+              <Activity size={15} color="#10b981" />
+              <span style={{ fontSize: '12px', fontWeight: 600, color: '#f4f4f5' }}>
                 Copilot Engine Status
               </span>
             </div>
             <span
               style={{
-                fontSize: '11px',
+                fontSize: '10px',
                 fontWeight: 600,
                 color: '#10b981',
                 background: 'rgba(16, 185, 129, 0.1)',
@@ -73,63 +76,62 @@ export const App: React.FC = () => {
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(2, 1fr)',
-              gap: '8px',
+              gap: '6px',
             }}
           >
             <div
               style={{
-                padding: '10px',
-                borderRadius: '10px',
+                padding: '8px',
+                borderRadius: '8px',
                 background: 'rgba(255, 255, 255, 0.02)',
                 border: '1px solid rgba(255, 255, 255, 0.05)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '4px',
+                gap: '2px',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#a1a1aa' }}>
-                <Shield size={12} color="#10b981" />
-                <span style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase' }}>Focus Shield</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#a1a1aa' }}>
+                <Shield size={11} color="#10b981" />
+                <span style={{ fontSize: '9px', fontWeight: 600, textTransform: 'uppercase' }}>Focus Shield</span>
               </div>
-              <span style={{ fontSize: '12px', fontWeight: 600, color: '#34d399' }}>Zero Blur Loss</span>
-              <span style={{ fontSize: '10px', color: '#71717a' }}>focusable: false</span>
+              <span style={{ fontSize: '11px', fontWeight: 600, color: '#34d399' }}>Zero Blur Loss</span>
+              <span style={{ fontSize: '9px', color: '#71717a' }}>focusable: false</span>
             </div>
 
             <div
               style={{
-                padding: '10px',
-                borderRadius: '10px',
+                padding: '8px',
+                borderRadius: '8px',
                 background: 'rgba(255, 255, 255, 0.02)',
                 border: '1px solid rgba(255, 255, 255, 0.05)',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '4px',
+                gap: '2px',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#a1a1aa' }}>
-                <Cpu size={12} color="#10b981" />
-                <span style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase' }}>OS Invisibility</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#a1a1aa' }}>
+                <Cpu size={11} color="#10b981" />
+                <span style={{ fontSize: '9px', fontWeight: 600, textTransform: 'uppercase' }}>OS Invisibility</span>
               </div>
-              <span style={{ fontSize: '12px', fontWeight: 600, color: '#34d399' }}>Excluded from Capture</span>
-              <span style={{ fontSize: '10px', color: '#71717a' }}>WDA_EXCLUDE</span>
+              <span style={{ fontSize: '11px', fontWeight: 600, color: '#34d399' }}>Excluded from Capture</span>
+              <span style={{ fontSize: '9px', color: '#71717a' }}>WDA_EXCLUDE</span>
             </div>
           </div>
 
           <div
             style={{
-              marginTop: 'auto',
-              padding: '10px 12px',
-              borderRadius: '10px',
+              padding: '8px 10px',
+              borderRadius: '8px',
               background: 'rgba(0, 0, 0, 0.3)',
               border: '1px solid rgba(255, 255, 255, 0.05)',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
+              gap: '6px',
             }}
           >
-            <Terminal size={14} color="#71717a" />
-            <span style={{ fontSize: '11px', color: '#a1a1aa', lineHeight: 1.4 }}>
-              Ready for live interview. Press <strong style={{ color: '#ffffff' }}>Ctrl+Shift+H</strong> anytime to trigger silent vision problem solver.
+            <Terminal size={13} color="#71717a" />
+            <span style={{ fontSize: '10px', color: '#a1a1aa', lineHeight: 1.4 }}>
+              Press <strong style={{ color: '#ffffff' }}>Ctrl+Shift+H</strong> anytime to trigger silent vision problem solver.
             </span>
           </div>
         </div>
