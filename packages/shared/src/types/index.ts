@@ -78,3 +78,11 @@ export interface DesktopAuthPayload {
   email: string;
   expiresAt: number;
 }
+
+export interface HUDState {
+  isVisible: boolean;
+  opacity: number;
+  isClickThrough: boolean;
+  isContentProtected: boolean;
+}
+

@@ -14,10 +14,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Stealth Desktop Overlay
 
-- [ ] **STLTH-01**: Electron overlay implements `win.setContentProtection(true)` to guarantee 100% invisibility to screen share software (Zoom, Google Meet, Teams) via Win32 `WDA_EXCLUDEFROMCAPTURE` and macOS `NSWindowSharingNone`.
-- [ ] **STLTH-02**: Overlay window is initialized with `focusable: false`, `alwaysOnTop: true` (`level: 'screen-saver'`), and click-through mode (`setIgnoreMouseEvents(true, { forward: true })`) to prevent OS focus loss and browser `blur` or `visibilitychange` events.
-- [ ] **STLTH-03**: Desktop client features OS stealth flags: `skipTaskbar: true` on Windows, frameless transparent glass styling, and `app.dock.hide()` / `LSUIElement: true` on macOS.
-- [ ] **STLTH-04**: 100% keyboard-driven overlay navigation via Electron `globalShortcut` for toggling visibility, opacity, click-through, and prompt actions.
+- [x] **STLTH-01**: Electron overlay implements `win.setContentProtection(true)` to guarantee 100% invisibility to screen share software (Zoom, Google Meet, Teams) via Win32 `WDA_EXCLUDEFROMCAPTURE` and macOS `NSWindowSharingNone`.
+- [x] **STLTH-02**: Overlay window is initialized with `focusable: false`, `alwaysOnTop: true` (`level: 'screen-saver'`), and click-through mode (`setIgnoreMouseEvents(true, { forward: true })`) to prevent OS focus loss and browser `blur` or `visibilitychange` events.
+- [x] **STLTH-03**: Desktop client features OS stealth flags: `skipTaskbar: true` on Windows, frameless transparent glass styling, and `app.dock.hide()` / `LSUIElement: true` on macOS.
+- [x] **STLTH-04**: 100% keyboard-driven overlay navigation via Electron `globalShortcut` for toggling visibility, opacity, click-through, and prompt actions.
 - [ ] **STLTH-05**: Neutral executable and process metadata (`SystemAudioHelper` / `DisplayAudioService`) configured in `electron-builder.yml`.
 
 ### Native Dual-Channel Audio Pipeline
@@ -79,10 +79,10 @@ Which phases cover which requirements.
 | WEB-01 | Phase 1 | Complete |
 | WEB-03 | Phase 1 | Complete |
 | QUAL-01 | Phase 1 | Complete |
-| STLTH-01 | Phase 2 | Pending |
-| STLTH-02 | Phase 2 | Pending |
-| STLTH-03 | Phase 2 | Pending |
-| STLTH-04 | Phase 2 | Pending |
+| STLTH-01 | Phase 2 | Complete |
+| STLTH-02 | Phase 2 | Complete |
+| STLTH-03 | Phase 2 | Complete |
+| STLTH-04 | Phase 2 | Complete |
 | AUDIO-01 | Phase 3 | Pending |
 | AUDIO-02 | Phase 3 | Pending |
 | AUDIO-03 | Phase 3 | Pending |

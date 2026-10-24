@@ -7,7 +7,7 @@ A phased journey to build a complete, production-grade Parakeet AI clone in a Tu
 ## Phases
 
 - [x] **Phase 1: Monorepo Scaffold, Database Schema, Auth & Desktop Deep-Linking** - Setup Turborepo (`apps/web`, `apps/desktop`, `packages/shared`), Supabase migrations with RLS (`profiles`, `sessions`, `documents`, `transcripts`, `ai_responses`, `credit_transactions`), Google/Email Auth, `copilot://auth` desktop deep-linking, strict Zod env validation, and Playwright smoke test.
-- [ ] **Phase 2: Stealth Electron HUD Overlay & Screen Protection Core** - Build transparent floating HUD overlay with `setContentProtection(true)` (Windows `WDA_EXCLUDEFROMCAPTURE` & macOS `NSWindowSharingNone`), anti-blur focus neutrality (`focusable: false`, `alwaysOnTop: true`), click-through mode, and OS global hotkeys (`globalShortcut`).
+- [x] **Phase 2: Stealth Electron HUD Overlay & Screen Protection Core** - Build transparent floating HUD overlay with `setContentProtection(true)` (Windows `WDA_EXCLUDEFROMCAPTURE` & macOS `NSWindowSharingNone`), anti-blur focus neutrality (`focusable: false`, `alwaysOnTop: true`), click-through mode, and OS global hotkeys (`globalShortcut`).
 - [ ] **Phase 3: Native Dual-Channel Audio Pipeline & Deepgram Nova-2 Streaming** - Capture system loopback audio (WASAPI/CoreAudio) and microphone natively without browser recording banners; stream linear16 PCM to Deepgram Nova-2 with real-time speaker diarization.
 - [ ] **Phase 4: Real-Time AI Answer Engine & Silent Vision Problem Solver** - Stream sub-second Claude 3.5 answers with resume context and solve coding challenges from silent desktop screenshots (`desktopCapturer`).
 - [ ] **Phase 5: Razorpay Billing, Mock AI Interviewer & Session Intelligence** - Implement Razorpay credit billing, resume vault with PDF/DOCX text extraction, voice AI mock interview simulations, and post-call analytics with question bank.
@@ -45,9 +45,10 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01: Electron + Vite + React desktop application with frameless transparent window and OS stealth flags (`skipTaskbar`, `LSUIElement`).
-- [ ] 02-02: Implementation of `win.setContentProtection(true)`, click-through toggle, and global hotkeys (`globalShortcut`).
-- [ ] 02-03: HUD floating UI components with minimized footprint and screen capture verification test harness.
+- [x] 02-01: Electron + Vite + React desktop application with frameless transparent window and OS stealth flags (`skipTaskbar`, `LSUIElement`).
+- [x] 02-02: Implementation of `win.setContentProtection(true)`, click-through toggle, and global hotkeys (`globalShortcut`).
+- [x] 02-03: HUD floating UI components with minimized footprint and screen capture verification test harness.
+
 
 ### Phase 3: Native Dual-Channel Audio Pipeline & Deepgram Nova-2 Streaming
 **Goal**: Capture system loopback audio and microphone streams natively and transcribe speech in real-time with speaker diarization.
@@ -123,7 +124,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Monorepo Scaffold, Database Schema, Auth & Desktop Deep-Linking | 3/3 | Complete | 2026-10-24 |
-| 2. Stealth Electron HUD Overlay & Screen Protection Core | 0/3 | Not started | - |
+| 2. Stealth Electron HUD Overlay & Screen Protection Core | 3/3 | Complete | 2026-10-25 |
 | 3. Native Dual-Channel Audio Pipeline & Deepgram Nova-2 Streaming | 0/3 | Not started | - |
 | 4. Real-Time AI Answer Engine & Silent Vision Problem Solver | 0/3 | Not started | - |
 | 5. Razorpay Billing, Mock AI Interviewer & Session Intelligence | 0/3 | Not started | - |

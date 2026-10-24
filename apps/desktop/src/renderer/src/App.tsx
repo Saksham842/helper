@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { HUDOverlay } from './components/HUDOverlay';
 import { AuthStatus } from './components/AuthStatus';
-import { Sparkles } from 'lucide-react';
+import { Terminal, Shield, Cpu, Activity } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [authData, setAuthData] = useState<{
@@ -26,84 +27,113 @@ export const App: React.FC = () => {
   }, []);
 
   return (
-    <div style={{
-      width: '100vw',
-      height: '100vh',
-      boxSizing: 'border-box',
-      padding: '20px',
-      background: 'rgba(10, 12, 16, 0.85)',
-      backdropFilter: 'blur(20px)',
-      color: '#f4f4f5',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      borderRadius: '24px',
-      border: '1px solid rgba(255, 255, 255, 0.1)',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '16px',
-      boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5)',
-    }}>
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingBottom: '12px',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{
-            width: '28px',
-            height: '28px',
-            borderRadius: '8px',
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+    <div style={{ width: '100vw', height: '100vh', margin: 0, padding: 0, overflow: 'hidden' }}>
+      <HUDOverlay>
+        <AuthStatus
+          isAuthenticated={authData.isAuthenticated}
+          userEmail={authData.userEmail}
+          token={authData.token}
+        />
+
+        {/* Live Copilot Status Card */}
+        <div
+          style={{
+            flex: 1,
+            borderRadius: '16px',
+            background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.07)',
             display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            <Sparkles size={16} color="#fff" />
+            flexDirection: 'column',
+            padding: '16px',
+            gap: '12px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Activity size={16} color="#10b981" />
+              <span style={{ fontSize: '13px', fontWeight: 600, color: '#f4f4f5' }}>
+                Copilot Engine Status
+              </span>
+            </div>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 600,
+                color: '#10b981',
+                background: 'rgba(16, 185, 129, 0.1)',
+                padding: '2px 8px',
+                borderRadius: '6px',
+              }}
+            >
+              Standby / Undetected
+            </span>
           </div>
-          <span style={{ fontWeight: 700, fontSize: '15px', letterSpacing: '-0.3px' }}>
-            Parakeet AI Copilot
-          </span>
-        </div>
-        <div style={{
-          fontSize: '11px',
-          fontWeight: 600,
-          padding: '3px 8px',
-          borderRadius: '100px',
-          background: 'rgba(255, 255, 255, 0.06)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          color: '#a1a1aa',
-        }}>
-          HUD v1.0
-        </div>
-      </div>
 
-      <AuthStatus
-        isAuthenticated={authData.isAuthenticated}
-        userEmail={authData.userEmail}
-        token={authData.token}
-      />
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: '8px',
+            }}
+          >
+            <div
+              style={{
+                padding: '10px',
+                borderRadius: '10px',
+                background: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#a1a1aa' }}>
+                <Shield size={12} color="#10b981" />
+                <span style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase' }}>Focus Shield</span>
+              </div>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: '#34d399' }}>Zero Blur Loss</span>
+              <span style={{ fontSize: '10px', color: '#71717a' }}>focusable: false</span>
+            </div>
 
-      <div style={{
-        flex: 1,
-        borderRadius: '16px',
-        background: 'rgba(255, 255, 255, 0.02)',
-        border: '1px dashed rgba(255, 255, 255, 0.1)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px',
-        textAlign: 'center',
-        gap: '8px',
-      }}>
-        <div style={{ fontSize: '14px', fontWeight: 600, color: '#e4e4e7' }}>
-          Real-Time Live HUD Ready
+            <div
+              style={{
+                padding: '10px',
+                borderRadius: '10px',
+                background: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#a1a1aa' }}>
+                <Cpu size={12} color="#10b981" />
+                <span style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase' }}>OS Invisibility</span>
+              </div>
+              <span style={{ fontSize: '12px', fontWeight: 600, color: '#34d399' }}>Excluded from Capture</span>
+              <span style={{ fontSize: '10px', color: '#71717a' }}>WDA_EXCLUDE</span>
+            </div>
+          </div>
+
+          <div
+            style={{
+              marginTop: 'auto',
+              padding: '10px 12px',
+              borderRadius: '10px',
+              background: 'rgba(0, 0, 0, 0.3)',
+              border: '1px solid rgba(255, 255, 255, 0.05)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <Terminal size={14} color="#71717a" />
+            <span style={{ fontSize: '11px', color: '#a1a1aa', lineHeight: 1.4 }}>
+              Ready for live interview. Press <strong style={{ color: '#ffffff' }}>Ctrl+Shift+H</strong> anytime to trigger silent vision problem solver.
+            </span>
+          </div>
         </div>
-        <div style={{ fontSize: '12px', color: '#71717a', maxWidth: '320px', lineHeight: 1.5 }}>
-          Screen-share invisible overlay window initialized. Start an interview or call from the dashboard to begin real-time speech diarization and AI suggestions.
-        </div>
-      </div>
+      </HUDOverlay>
     </div>
   );
 };
