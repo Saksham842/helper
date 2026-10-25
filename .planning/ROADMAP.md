@@ -10,7 +10,7 @@ A phased journey to build a complete, production-grade Parakeet AI clone in a Tu
 - [x] **Phase 2: Stealth Electron HUD Overlay & Screen Protection Core** - Build transparent floating HUD overlay with `setContentProtection(true)` (Windows `WDA_EXCLUDEFROMCAPTURE` & macOS `NSWindowSharingNone`), anti-blur focus neutrality (`focusable: false`, `alwaysOnTop: true`), click-through mode, and OS global hotkeys (`globalShortcut`).
 - [x] **Phase 3: Native Dual-Channel Audio Pipeline & Deepgram Nova-2 Streaming** - Capture system loopback audio (WASAPI/CoreAudio) and microphone natively without browser recording banners; stream linear16 PCM to Deepgram Nova-2 with real-time speaker diarization.
 - [x] **Phase 4: Real-Time AI Answer Engine & Silent Vision Problem Solver** - Stream sub-second Claude 3.5 answers with resume context and solve coding challenges from silent desktop screenshots (`desktopCapturer`).
-- [ ] **Phase 5: Razorpay Billing, Mock AI Interviewer & Session Intelligence** - Implement Razorpay credit billing, resume vault with PDF/DOCX text extraction, voice AI mock interview simulations, and post-call analytics with question bank.
+- [ ] **Phase 5: 100% Free Architecture — Resume Vault, Local Offline Whisper STT & Web Voice AI Interviewer** - Implement resume vault with PDF/DOCX text extraction, replace cloud Deepgram with local offline Whisper STT (`@huggingface/transformers`), remove all Razorpay/billing paywalls for 100% free unlimited access, and build the free Voice AI Mock Interviewer simulator with post-call analytics and question bank.
 - [ ] **Phase 6: Hardening, Packaging, Stealth Verification & Automated Test Suites** - Neutral executable packaging (`SystemAudioHelper`), strict TypeScript, Vitest unit tests, and Playwright E2E anti-detection validation.
 
 ## Phase Details
@@ -83,22 +83,23 @@ Plans:
 - [x] 04-02: Claude 3.5 streaming answer pipeline with real-time token rendering on the HUD.
 - [x] 04-03: Silent `desktopCapturer` screenshot capture and Claude Vision coding problem solver.
 
-### Phase 5: Razorpay Billing, Mock AI Interviewer & Session Intelligence
-**Goal**: Implement credit-based Razorpay monetization, resume vault with PDF/DOCX text extraction, voice AI mock interviews, and post-call analytics.
+### Phase 5: 100% Free Architecture — Resume Vault, Local Offline Whisper STT & Web Voice AI Interviewer
+**Goal**: Implement resume vault with PDF/DOCX text extraction, replace cloud Deepgram with local offline Whisper STT (`@huggingface/transformers`), remove all Razorpay/billing paywalls for 100% free unlimited access, and build the free Voice AI Mock Interviewer simulator with post-call analytics and question bank.
 **Mode:** mvp
 **Depends on**: Phase 4
-**Requirements**: BILL-01, BILL-02, WEB-02, WEB-04, WEB-05
+**Requirements**: WEB-02, STT-FREE, BILL-FREE, WEB-04, WEB-05
 **Success Criteria**:
-  1. User can purchase credit packs through Razorpay checkout with webhook verification updating balances in real-time.
-  2. Candidate can upload PDF/DOCX resumes with automated text extraction saved into Supabase Storage.
-  3. Candidate can conduct voice AI mock interview sessions with real-time speech responses and scoring feedback.
-  4. Post-call analytics generate automated meeting summaries, action items, verbatim transcript history, and question bank indexing.
+  1. Candidate can upload PDF/DOCX resumes with automated server-side text extraction into Supabase Storage and HUD context injection.
+  2. All Razorpay billing dependencies and credit gating are completely removed; all sessions and AI copilot calls are 100% free and unlimited.
+  3. Desktop HUD transcription runs 100% locally and offline via `@huggingface/transformers` (quantized Whisper ONNX) with dual-channel VAD diarization without any Deepgram API key.
+  4. Candidate can conduct interactive voice AI mock interview sessions in `apps/web` using the browser's free native Web Speech API (`SpeechRecognition` & `speechSynthesis`).
+  5. Post-call meeting analytics generate executive summaries, question-by-question critiques, and a personal question bank.
 **Plans**: 3 plans
 
 Plans:
 - [ ] 05-01: Resume Vault upload with PDF/DOCX text extraction and session custom instructions manager.
-- [ ] 05-02: Razorpay checkout integration, order creation, and signed webhook balance verification.
-- [ ] 05-03: Voice AI Mock Interviewer simulator and post-call session notes generator with question bank indexing.
+- [ ] 05-02: Replace Deepgram with local offline Whisper STT (`@huggingface/transformers`) and remove Razorpay/credit gating.
+- [ ] 05-03: Free Voice AI Mock Interviewer simulator (Web Speech API), post-call session notes generator, and question bank.
 
 ### Phase 6: Hardening, Packaging, Stealth Verification & Automated Test Suites
 **Goal**: Harden the platform with strict type checking, automated tests, anti-detection validation, and production installer packaging.

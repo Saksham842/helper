@@ -16,14 +16,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-24)
 
 **Core value:** Deliver an undetectable, sub-second latency real-time copilot HUD that captures both caller loopback audio and candidate microphone input, transcribes and diarizes live speech via Deepgram Nova-2, and streams context-aware answers and vision-based coding solutions from Claude without forfeiting OS focus or appearing in screen captures.
-**Current focus:** Phase 5: Razorpay Billing, Mock AI Interviewer & Session Intelligence
+**Current focus:** Phase 5: 100% Free Architecture — Resume Vault, Local Offline Whisper STT & Web Voice AI Interviewer
 
 ## Current Position
 
-Phase: 5 of 6 (Razorpay Billing, Mock AI Interviewer & Session Intelligence)
+Phase: 5 of 6 (100% Free Architecture — Resume Vault, Local Offline Whisper STT & Web Voice AI Interviewer)
 Plan: 0 of 3 in current phase
-Status: Ready to plan Phase 5
-Last activity: 2026-10-25 — Completed and verified Phase 4 (Plans 04-01, 04-02, 04-03)
+Status: Plans written and ready to execute (05-01, 05-02, 05-03)
+Last activity: 2026-10-25 — Pivoted Phase 5 to 100% free local Whisper STT, removed Razorpay/credits, and updated plans 05-01, 05-02, 05-03.
 
 Progress: [========----] 67%
 
