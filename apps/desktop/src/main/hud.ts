@@ -53,12 +53,12 @@ export class HUDWindowManager {
       height: windowHeight,
       x: posX,
       y: posY,
-      show: false, // Critical for Windows 11 DWM: do not paint until content is ready
-      transparent: true,
+      show: false,
+      backgroundColor: '#0a0f1d',
       frame: false,
-      hasShadow: false,
-      skipTaskbar: true, // Stealth from Windows Taskbar / Alt-Tab
-      focusable: false,  // Anti-blur: never steals focus from interview coding platforms
+      hasShadow: true,
+      skipTaskbar: false,
+      focusable: true,
       alwaysOnTop: true,
       resizable: true,
       minWidth: 320,
@@ -74,7 +74,7 @@ export class HUDWindowManager {
       this.window.setAlwaysOnTop(true, 'screen-saver', 1);
       this.window.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
     } else {
-      this.window.setAlwaysOnTop(true);
+      this.window.setAlwaysOnTop(true, 'screen-saver');
     }
 
     this.window.setOpacity(this.state.opacity);
@@ -83,7 +83,8 @@ export class HUDWindowManager {
       if (!this.window || this.window.isDestroyed()) return;
       if (!this.window.isVisible()) {
         logInfo('[HUD] Displaying HUD overlay window.');
-        this.window.showInactive();
+        this.window.show();
+        this.window.moveTop();
         this.state.isVisible = true;
       }
       try {
@@ -184,10 +185,10 @@ export class HUDWindowManager {
     if (process.platform === 'darwin') {
       this.window.setAlwaysOnTop(true, 'screen-saver', 1);
     } else {
-      this.window.setAlwaysOnTop(true);
+      this.window.setAlwaysOnTop(true, 'screen-saver');
     }
-    this.window.setFocusable(false);
-    this.window.showInactive();
+    this.window.show();
+    this.window.moveTop();
     this.state.isVisible = true;
     try {
       this.window.setContentProtection(true);

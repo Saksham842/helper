@@ -1,0 +1,15 @@
+
+Loading path: C:\Users\acer\Desktop\parakeet ai\apps\desktop\dist\index.html exists: true
+Error occurred in handler for 'hud:get-state': Error: No handler registered for 'hud:get-state'
+    at WebContents.<anonymous> (node:electron/js2c/browser_init:2:87136)
+    at WebContents.emit (node:events:518:28)
+RESULT: {
+  "innerW": 450,
+  "innerH": 626,
+  "htmlH": 626,
+  "bodyH": 626,
+  "rootH": 626,
+  "rootChildCount": 1,
+  "innerHTML": "\n    <div id=\"root\"><div style=\"width: 100vw; height: 100vh; margin: 0px; padding: 0px; overflow: hidden;\"><div style=\"width: 100%; height: 100%; box-sizing: border-box; display: flex; flex-direction: column; border-radius: 16px; background: rgb(10, 15, 29); border: 1px solid rgba(255, 255, 255, 0.1"
+}
+Image size: { width: 1053, height: 1465 } Bytes: 174848
