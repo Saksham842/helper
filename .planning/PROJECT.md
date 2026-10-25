@@ -15,31 +15,40 @@ Deliver an undetectable, sub-second latency real-time copilot HUD that captures 
 - **Success metric**: Sub-800ms end-to-end question detection to answer streaming latency, 100% exclusion from OS screen-sharing APIs, zero focus loss / blur events on proctored coding assessment platforms.
 - **Strategy notes**: Parakeet AI desktop companion pairs with the web dashboard via seamless deep-link token handoff (`parakeet://auth?token=...`).
 
+## Current State
+
+- **Shipped Version:** v1.0 (2026-10-25)
+- **Status:** All 6 phases completed (18/18 plans). 100% test coverage across core audio and AI engines. Neutral desktop installer (`SystemAudioHelper.exe`) built with Electron fuse hardening.
+- **Repository:** https://github.com/Saksham842/helper.git
+
 ## Requirements
 
-### Validated
+### Validated in v1.0
 
-(None yet — greenfield initialization; ship phases to validate)
+- [x] **MONO-01**: Turborepo monorepo setup (`apps/web`, `apps/desktop`, `packages/shared`) with pnpm workspaces and strict TypeScript.
+- [x] **STLTH-01**: Electron stealth HUD overlay with screen-capture invisibility via `setContentProtection(true)` (Windows `WDA_EXCLUDEFROMCAPTURE` and macOS `NSWindowSharingNone`).
+- [x] **STLTH-02**: Focus-neutral operation with `focusable: false`, `alwaysOnTop: true`, and click-through mode (`setIgnoreMouseEvents(true, { forward: true })`).
+- [x] **STLTH-03**: OS-level concealment: `skipTaskbar: true`, transparent frameless window, neutral process naming (`SystemAudioHelper`).
+- [x] **STLTH-04**: Global keyboard shortcut overlay navigation via Electron `globalShortcut`.
+- [x] **AUDIO-01**: Native dual-channel audio capture combining OS system loopback audio and microphone input without browser sharing banners.
+- [x] **AUDIO-02**: Free local offline Whisper STT engine via `@huggingface/transformers` (`whisper-base.en` ONNX) with VAD diarization.
+- [x] **AI-01**: Automatic interviewer question detection heuristics and manual hotkey trigger initiating streaming Claude AI responses.
+- [x] **AI-02**: Context-injected answer generation incorporating candidate resume text, target job description, and custom instructions.
+- [x] **AI-03**: Silent full-screen capture via `desktopCapturer.getSources({ types: ['screen'] })` without OS screenshot UI.
+- [x] **AI-04**: Claude Vision integration analyzing coding screenshots to solve DSA and system design challenges with step-by-step code and complexity analysis.
+- [x] **WEB-01**: Next.js 15 App Router web dashboard with modern dark/light UI, Google OAuth and Email auth via Supabase Auth.
+- [x] **WEB-02**: Document & Resume Vault supporting PDF and DOCX uploads with automated server-side text extraction.
+- [x] **WEB-03**: Desktop app deep-linking (`copilot://auth?token=...`) for authentication token handoff.
+- [x] **WEB-04**: Interactive Voice AI Mock Interviewer simulating realistic interview scenarios with live speech evaluation and transcripts.
+- [x] **WEB-05**: Post-call AI session intelligence: automated meeting summaries, action items, transcript archives, and question bank indexing.
+- [x] **QUAL-01**: Zero TypeScript errors (`noImplicitAny`), Zod runtime schema validation, Vitest unit test suite, and Playwright E2E smoke tests.
+- [x] **STLTH-05**: Production packaging (`SystemAudioHelper.exe` NSIS installer) with Electron fuses (`RunAsNode=false`, `OnlyLoadAppFromAsar=true`).
 
-### Active
+### Future Milestone Goals (v2.0)
 
-- [ ] **MONO-01**: Turborepo monorepo setup (`apps/web`, `apps/desktop`, `packages/types`, `packages/config`) with pnpm workspaces and strict TypeScript.
-- [ ] **STLTH-01**: Electron stealth HUD overlay with screen-capture invisibility via `setContentProtection(true)` (Windows `WDA_EXCLUDEFROMCAPTURE` and macOS `NSWindowSharingNone`).
-- [ ] **STLTH-02**: Focus-neutral operation with `focusable: false`, `alwaysOnTop: true`, and click-through mode (`setIgnoreMouseEvents(true, { forward: true })`) preventing browser `blur` and `visibilitychange` events.
-- [ ] **STLTH-03**: OS-level concealment: `skipTaskbar: true`, transparent frameless window, macOS dock hiding (`LSUIElement: true`), and neutral process metadata (`SystemAudioHelper`).
-- [ ] **STLTH-04**: 100% global hotkey navigation via Electron `globalShortcut` for toggling visibility, click-through, screenshot triggers, and manual question prompts.
-- [ ] **AUDIO-01**: Native dual-channel audio capture combining OS system loopback audio (caller voice) and microphone input without browser sharing banners.
-- [ ] **AUDIO-02**: Real-time dual-channel audio streaming over WebSocket to Deepgram Nova-2 with speaker diarization (Interviewer vs Candidate).
-- [ ] **AI-01**: Automatic interviewer question detection heuristics and manual hotkey trigger initiating streaming Claude AI responses.
-- [ ] **AI-02**: Context-injected answer generation incorporating candidate resume text, target job description, and custom instructions (up to 20k characters).
-- [ ] **AI-03**: Silent full-screen capture via `desktopCapturer.getSources({ types: ['screen'] })` sent to Claude Vision for real-time coding problem solving (DSA, LeetCode, HackerRank, system design) with code, explanation, and time/space complexity.
-- [ ] **WEB-01**: Next.js 15 App Router web dashboard with modern dark/light aesthetic, Google OAuth and Email authentication via Supabase Auth.
-- [ ] **WEB-02**: Document and Resume Vault supporting PDF and DOCX uploads with automated server-side text extraction.
-- [ ] **WEB-03**: Seamless desktop app deep-linking (`parakeet://auth?token=...`) for authentication token handoff.
-- [ ] **WEB-04**: Interactive Voice AI Mock Interviewer simulating realistic interview scenarios with live speech evaluation and transcripts.
-- [ ] **WEB-05**: Post-call AI session intelligence: automated meeting summaries, action items, transcript archives, and question bank indexing.
-- [ ] **BILL-01**: Razorpay payment gateway integration for credit package purchases and webhook transaction verification.
-- [ ] **QUAL-01**: Zero TypeScript errors (`noImplicitAny`), Zod runtime environment schema validation, Vitest unit/integration test suite, and Playwright E2E tests for Web and Desktop.
+- **V2-01**: Eye-contact simulation / gaze correction integration for video calls.
+- **V2-02**: Native Linux stealth overlay support using Wayland/X11 compositing overrides.
+- **V2-03**: Multi-language real-time translation for foreign language interviews.
 
 ### Out of Scope
 

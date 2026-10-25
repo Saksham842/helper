@@ -38,4 +38,31 @@ test.describe('Parakeet AI Web Platform Smoke Tests', () => {
     await page.waitForURL('**/login');
     await expect(page).toHaveURL(/.*login/);
   });
+
+  test('4. Unauthenticated access to /dashboard/vault redirects to /login', async ({ page }) => {
+    await page.goto('/dashboard/vault');
+    await page.waitForURL('**/login');
+    await expect(page).toHaveURL(/.*login/);
+  });
+
+  test('5. Unauthenticated access to /dashboard/mock redirects to /login', async ({ page }) => {
+    await page.goto('/dashboard/mock');
+    await page.waitForURL('**/login');
+    await expect(page).toHaveURL(/.*login/);
+  });
+
+  test('6. Unauthenticated access to /dashboard/questions redirects to /login', async ({ page }) => {
+    await page.goto('/dashboard/questions');
+    await page.waitForURL('**/login');
+    await expect(page).toHaveURL(/.*login/);
+  });
+
+  test('7. /api/health endpoint returns 200 with status ok and version', async ({ request }) => {
+    const res = await request.get('/api/health');
+    expect(res.ok()).toBeTruthy();
+    const body = await res.json();
+    expect(body.status).toBe('ok');
+    expect(body.version).toBe('1.0.0');
+    expect(body.service).toBe('Parakeet AI Web Platform');
+  });
 });

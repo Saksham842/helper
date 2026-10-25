@@ -64,6 +64,37 @@ CRITICAL INSTRUCTIONS:
 
     return prompt;
   }
+
+  public async syncActiveContext(
+    apiUrl: string = 'http://localhost:3000/api/vault/active',
+    token?: string
+  ): Promise<boolean> {
+    try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const res = await fetch(apiUrl, { headers });
+      if (!res.ok) return false;
+
+      const data = await res.json();
+      if (data.hasActiveResume || data.extractedText) {
+        this.setContext({
+          resumeText: data.extractedText || undefined,
+          targetRole: data.targetRole || this.context.targetRole,
+          customInstructions: data.customInstructions || this.context.customInstructions,
+        });
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.warn('[PromptEngine] Active resume sync skipped or offline:', err);
+      return false;
+    }
+  }
 }
 
 export const promptEngine = new PromptEngine();

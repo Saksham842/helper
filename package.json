@@ -9,7 +9,8 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "clean": "turbo run clean"
+    "clean": "turbo run clean",
+    "start:all": "cmd /c start-copilot.bat"
   },
   "devDependencies": {
     "turbo": "^2.3.3",

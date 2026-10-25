@@ -1,22 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { audioCaptureService } from '../services/audioCapture';
 import { audioMultiplexer, AudioLevels } from '../services/audioMultiplexer';
-import { deepgramLiveClient, TranscriptMessage, ConnectionStatus } from '../services/deepgramLiveClient';
+import { localWhisperClient, TranscriptMessage, LocalSTTStatus } from '../services/localWhisperClient';
 import {
   Mic,
   Play,
   Square,
-  Key,
   MessageSquare,
   Headphones,
   AlertCircle,
+  Cpu,
 } from 'lucide-react';
 
 export const TranscriptFeed: React.FC = () => {
   const [isListening, setIsListening] = useState<boolean>(false);
-  const [apiKey, setApiKey] = useState<string>('');
-  const [showKeyInput, setShowKeyInput] = useState<boolean>(false);
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('disconnected');
+  const [sttStatus, setSttStatus] = useState<LocalSTTStatus>('disconnected');
+  const [statusMessage, setStatusMessage] = useState<string>('Offline Ready');
   const [statusError, setStatusError] = useState<string | null>(null);
 
   const [audioLevels, setAudioLevels] = useState<AudioLevels>({
@@ -25,37 +24,18 @@ export const TranscriptFeed: React.FC = () => {
   });
 
   const [messages, setMessages] = useState<TranscriptMessage[]>([]);
-  const [interimInterviewer, setInterimInterviewer] = useState<string>('');
-  const [interimCandidate, setInterimCandidate] = useState<string>('');
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Check localStorage for saved Deepgram key
-    const savedKey = localStorage.getItem('parakeet_deepgram_api_key');
-    if (savedKey) {
-      setApiKey(savedKey);
-      deepgramLiveClient.setApiKey(savedKey);
-    } else {
-      setShowKeyInput(true);
-    }
-
-    // Subscribe to Deepgram transcript events
-    const unsubTranscript = deepgramLiveClient.onTranscript((msg) => {
-      if (msg.isFinal) {
-        setMessages((prev) => [...prev, msg]);
-        if (msg.speaker === 'interviewer') setInterimInterviewer('');
-        if (msg.speaker === 'candidate') setInterimCandidate('');
-      } else {
-        if (msg.speaker === 'interviewer') setInterimInterviewer(msg.text);
-        if (msg.speaker === 'candidate') setInterimCandidate(msg.text);
-      }
+    // Subscribe to local Whisper transcript events
+    const unsubTranscript = localWhisperClient.onTranscript((msg) => {
+      setMessages((prev) => [...prev, msg]);
     });
 
     // Subscribe to status changes
-    const unsubStatus = deepgramLiveClient.onStatusChange((status, error) => {
-      setConnectionStatus(status);
-      setStatusError(error || null);
+    const unsubStatus = localWhisperClient.onStatusChange((status, message) => {
+      setSttStatus(status);
+      if (message) setStatusMessage(message);
     });
 
     // Subscribe to live VU audio levels
@@ -63,9 +43,9 @@ export const TranscriptFeed: React.FC = () => {
       setAudioLevels(levels);
     });
 
-    // Pipe PCM chunks to Deepgram
+    // Pipe PCM chunks to local Whisper VAD engine
     const unsubData = audioMultiplexer.onAudioData((chunk) => {
-      deepgramLiveClient.sendAudioChunk(chunk);
+      localWhisperClient.sendAudio(chunk);
     });
 
     return () => {
@@ -79,23 +59,9 @@ export const TranscriptFeed: React.FC = () => {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, interimInterviewer, interimCandidate]);
-
-  const handleSaveApiKey = () => {
-    if (apiKey.trim()) {
-      localStorage.setItem('parakeet_deepgram_api_key', apiKey.trim());
-      deepgramLiveClient.setApiKey(apiKey.trim());
-      setShowKeyInput(false);
-      setStatusError(null);
-    }
-  };
+  }, [messages]);
 
   const startListening = async () => {
-    if (!apiKey.trim()) {
-      setShowKeyInput(true);
-      return;
-    }
-
     try {
       setStatusError(null);
       // 1. Capture system loopback audio (Interviewer)
@@ -104,8 +70,8 @@ export const TranscriptFeed: React.FC = () => {
       // 2. Capture microphone audio (Candidate)
       const micStream = await audioCaptureService.startMicrophoneCapture();
 
-      // 3. Connect to Deepgram Nova-2
-      deepgramLiveClient.connect();
+      // 3. Initialize local Whisper transcriber
+      await localWhisperClient.initialize();
 
       // 4. Start 2-channel 16kHz PCM multiplexer
       await audioMultiplexer.start(loopbackStream, micStream);
@@ -122,7 +88,6 @@ export const TranscriptFeed: React.FC = () => {
     setIsListening(false);
     audioMultiplexer.stop();
     audioCaptureService.stopAll();
-    deepgramLiveClient.disconnect();
     setAudioLevels({ interviewerLevel: 0, candidateLevel: 0 });
   };
 
@@ -176,28 +141,27 @@ export const TranscriptFeed: React.FC = () => {
               <span>{isListening ? 'Stop Listening' : 'Start Live Copilot'}</span>
             </button>
 
-            <button
-              onClick={() => setShowKeyInput(!showKeyInput)}
+            {/* Local Whisper Engine Status Pill */}
+            <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '5px',
-                padding: '6px 10px',
+                gap: '6px',
+                padding: '5px 10px',
                 borderRadius: '8px',
                 fontSize: '11px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                color: '#a1a1aa',
-                cursor: 'pointer',
+                fontWeight: 600,
+                background: 'rgba(16, 185, 129, 0.08)',
+                border: '1px solid rgba(16, 185, 129, 0.2)',
+                color: '#34d399',
               }}
-              title="Configure Deepgram Nova-2 API Key"
             >
-              <Key size={12} />
-              <span>{apiKey ? 'Key Set' : 'Add Deepgram Key'}</span>
-            </button>
+              <Cpu size={12} color="#10b981" />
+              <span>Whisper STT (100% Offline)</span>
+            </div>
           </div>
 
-          {/* Connection Status Pill */}
+          {/* Engine Status */}
           <div
             style={{
               display: 'flex',
@@ -205,13 +169,13 @@ export const TranscriptFeed: React.FC = () => {
               gap: '6px',
               fontSize: '11px',
               color:
-                connectionStatus === 'connected'
+                sttStatus === 'ready' || sttStatus === 'transcribing'
                   ? '#34d399'
-                  : connectionStatus === 'connecting'
+                  : sttStatus === 'loading'
                   ? '#fbbf24'
-                  : connectionStatus === 'error'
+                  : sttStatus === 'error'
                   ? '#f87171'
-                  : '#71717a',
+                  : '#a1a1aa',
             }}
           >
             <span
@@ -220,64 +184,19 @@ export const TranscriptFeed: React.FC = () => {
                 height: '6px',
                 borderRadius: '50%',
                 backgroundColor:
-                  connectionStatus === 'connected'
+                  sttStatus === 'ready' || sttStatus === 'transcribing'
                     ? '#10b981'
-                    : connectionStatus === 'connecting'
+                    : sttStatus === 'loading'
                     ? '#f59e0b'
-                    : connectionStatus === 'error'
+                    : sttStatus === 'error'
                     ? '#ef4444'
                     : '#71717a',
                 display: 'inline-block',
               }}
             />
-            <span style={{ textTransform: 'capitalize' }}>Nova-2: {connectionStatus}</span>
+            <span style={{ textTransform: 'capitalize' }}>{statusMessage}</span>
           </div>
         </div>
-
-        {/* Deepgram Key Input Drawer */}
-        {showKeyInput && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px',
-              borderRadius: '8px',
-              background: 'rgba(0, 0, 0, 0.4)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-            }}
-          >
-            <input
-              type="password"
-              placeholder="Deepgram Nova-2 API Key..."
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              style={{
-                flex: 1,
-                background: 'transparent',
-                border: 'none',
-                color: '#f4f4f5',
-                fontSize: '12px',
-                outline: 'none',
-              }}
-            />
-            <button
-              onClick={handleSaveApiKey}
-              style={{
-                padding: '4px 10px',
-                borderRadius: '6px',
-                fontSize: '11px',
-                fontWeight: 600,
-                background: '#10b981',
-                color: '#ffffff',
-                border: 'none',
-                cursor: 'pointer',
-              }}
-            >
-              Save
-            </button>
-          </div>
-        )}
 
         {statusError && (
           <div
@@ -318,13 +237,21 @@ export const TranscriptFeed: React.FC = () => {
               </div>
               <span style={{ fontSize: '9px', color: '#a1a1aa' }}>Loopback</span>
             </div>
-            <div style={{ width: '100%', height: '4px', borderRadius: '2px', background: 'rgba(255, 255, 255, 0.08)', overflow: 'hidden' }}>
+            <div
+              style={{
+                height: '5px',
+                borderRadius: '3px',
+                background: 'rgba(255, 255, 255, 0.08)',
+                overflow: 'hidden',
+              }}
+            >
               <div
                 style={{
                   height: '100%',
-                  width: `${Math.round(audioLevels.interviewerLevel * 100)}%`,
-                  background: 'linear-gradient(90deg, #a855f7, #c084fc)',
-                  transition: 'width 0.05s linear',
+                  width: `${Math.min(100, Math.round(audioLevels.interviewerLevel * 100))}%`,
+                  background: 'linear-gradient(90deg, #a855f7 0%, #c084fc 100%)',
+                  borderRadius: '3px',
+                  transition: 'width 0.05s ease',
                 }}
               />
             </div>
@@ -349,13 +276,21 @@ export const TranscriptFeed: React.FC = () => {
               </div>
               <span style={{ fontSize: '9px', color: '#a1a1aa' }}>Microphone</span>
             </div>
-            <div style={{ width: '100%', height: '4px', borderRadius: '2px', background: 'rgba(255, 255, 255, 0.08)', overflow: 'hidden' }}>
+            <div
+              style={{
+                height: '5px',
+                borderRadius: '3px',
+                background: 'rgba(255, 255, 255, 0.08)',
+                overflow: 'hidden',
+              }}
+            >
               <div
                 style={{
                   height: '100%',
-                  width: `${Math.round(audioLevels.candidateLevel * 100)}%`,
-                  background: 'linear-gradient(90deg, #10b981, #34d399)',
-                  transition: 'width 0.05s linear',
+                  width: `${Math.min(100, Math.round(audioLevels.candidateLevel * 100))}%`,
+                  background: 'linear-gradient(90deg, #10b981 0%, #34d399 100%)',
+                  borderRadius: '3px',
+                  transition: 'width 0.05s ease',
                 }}
               />
             </div>
@@ -363,135 +298,95 @@ export const TranscriptFeed: React.FC = () => {
         </div>
       </div>
 
-      {/* Transcript Feed Container */}
+      {/* Real-Time Transcript Message Feed */}
       <div
         style={{
           flex: 1,
+          minHeight: '180px',
+          maxHeight: '260px',
           overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
-          gap: '10px',
+          gap: '8px',
           padding: '10px',
           borderRadius: '14px',
           background: 'rgba(0, 0, 0, 0.25)',
           border: '1px solid rgba(255, 255, 255, 0.05)',
-          minHeight: '220px',
-          maxHeight: '340px',
         }}
       >
-        {messages.length === 0 && !interimInterviewer && !interimCandidate ? (
+        {messages.length === 0 ? (
           <div
             style={{
               margin: 'auto',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              color: '#71717a',
+              gap: '6px',
+              color: '#52525b',
+              fontSize: '11px',
               textAlign: 'center',
-              padding: '20px',
             }}
           >
-            <MessageSquare size={24} />
-            <span style={{ fontSize: '13px', fontWeight: 600, color: '#a1a1aa' }}>
-              No speech detected yet
-            </span>
-            <span style={{ fontSize: '11px', maxWidth: '280px', lineHeight: 1.4 }}>
-              Click <strong>Start Live Copilot</strong> and speak into your mic or play caller audio to see deterministic multi-channel diarization in real-time.
+            <MessageSquare size={22} color="#3f3f46" />
+            <span>Dual-channel audio active. Live speech will transcribe here offline.</span>
+            <span style={{ fontSize: '10px', color: '#10b981' }}>
+              Zero API keys required • Auto-detects questions for AI answers
             </span>
           </div>
         ) : (
-          <>
-            {messages.map((msg) => {
-              const isInterviewer = msg.speaker === 'interviewer';
-              return (
+          messages.map((msg) => {
+            const isInterviewer = msg.speaker === 'interviewer';
+            return (
+              <div
+                key={msg.id}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '3px',
+                  alignSelf: isInterviewer ? 'flex-start' : 'flex-end',
+                  maxWidth: '85%',
+                }}
+              >
                 <div
-                  key={msg.id}
                   style={{
                     display: 'flex',
-                    flexDirection: 'column',
+                    alignItems: 'center',
                     gap: '4px',
-                    padding: '8px 10px',
-                    borderRadius: '10px',
-                    background: isInterviewer
-                      ? 'rgba(168, 85, 247, 0.08)'
-                      : 'rgba(16, 185, 129, 0.08)',
-                    border: `1px solid ${
-                      isInterviewer ? 'rgba(168, 85, 247, 0.2)' : 'rgba(16, 185, 129, 0.2)'
-                    }`,
+                    fontSize: '10px',
+                    fontWeight: 600,
+                    color: isInterviewer ? '#c084fc' : '#34d399',
+                    paddingLeft: '4px',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span
-                      style={{
-                        fontSize: '10px',
-                        fontWeight: 700,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.04em',
-                        color: isInterviewer ? '#c084fc' : '#34d399',
-                      }}
-                    >
-                      {isInterviewer ? 'Interviewer' : 'You (Candidate)'}
-                    </span>
-                    <span style={{ fontSize: '9px', color: '#71717a' }}>
-                      {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#f4f4f5', lineHeight: 1.4 }}>
-                    {msg.text}
-                  </div>
+                  {isInterviewer ? <Headphones size={10} /> : <Mic size={10} />}
+                  <span>{isInterviewer ? 'Interviewer' : 'You (Candidate)'}</span>
+                  <span style={{ color: '#52525b', fontSize: '9px', fontWeight: 400 }}>
+                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                  </span>
                 </div>
-              );
-            })}
 
-            {/* Interim Interviewer typing text */}
-            {interimInterviewer && (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '4px',
-                  padding: '8px 10px',
-                  borderRadius: '10px',
-                  background: 'rgba(168, 85, 247, 0.04)',
-                  border: '1px dashed rgba(168, 85, 247, 0.3)',
-                }}
-              >
-                <span style={{ fontSize: '10px', fontWeight: 700, color: '#c084fc' }}>
-                  Interviewer (Speaking...)
-                </span>
-                <div style={{ fontSize: '12px', color: '#d4d4d8', fontStyle: 'italic', lineHeight: 1.4 }}>
-                  {interimInterviewer}
+                <div
+                  style={{
+                    padding: '8px 12px',
+                    borderRadius: isInterviewer ? '4px 14px 14px 14px' : '14px 4px 14px 14px',
+                    background: isInterviewer
+                      ? 'linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(147, 51, 234, 0.08) 100%)'
+                      : 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.08) 100%)',
+                    border: isInterviewer
+                      ? '1px solid rgba(168, 85, 247, 0.25)'
+                      : '1px solid rgba(16, 185, 129, 0.25)',
+                    color: '#f4f4f5',
+                    fontSize: '12px',
+                    lineHeight: '1.4',
+                  }}
+                >
+                  {msg.text}
                 </div>
               </div>
-            )}
-
-            {/* Interim Candidate typing text */}
-            {interimCandidate && (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '4px',
-                  padding: '8px 10px',
-                  borderRadius: '10px',
-                  background: 'rgba(16, 185, 129, 0.04)',
-                  border: '1px dashed rgba(16, 185, 129, 0.3)',
-                }}
-              >
-                <span style={{ fontSize: '10px', fontWeight: 700, color: '#34d399' }}>
-                  You (Speaking...)
-                </span>
-                <div style={{ fontSize: '12px', color: '#d4d4d8', fontStyle: 'italic', lineHeight: 1.4 }}>
-                  {interimCandidate}
-                </div>
-              </div>
-            )}
-
-            <div ref={messagesEndRef} />
-          </>
+            );
+          })
         )}
+        <div ref={messagesEndRef} />
       </div>
     </div>
   );

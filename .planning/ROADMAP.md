@@ -10,8 +10,10 @@ A phased journey to build a complete, production-grade Parakeet AI clone in a Tu
 - [x] **Phase 2: Stealth Electron HUD Overlay & Screen Protection Core** - Build transparent floating HUD overlay with `setContentProtection(true)` (Windows `WDA_EXCLUDEFROMCAPTURE` & macOS `NSWindowSharingNone`), anti-blur focus neutrality (`focusable: false`, `alwaysOnTop: true`), click-through mode, and OS global hotkeys (`globalShortcut`).
 - [x] **Phase 3: Native Dual-Channel Audio Pipeline & Deepgram Nova-2 Streaming** - Capture system loopback audio (WASAPI/CoreAudio) and microphone natively without browser recording banners; stream linear16 PCM to Deepgram Nova-2 with real-time speaker diarization.
 - [x] **Phase 4: Real-Time AI Answer Engine & Silent Vision Problem Solver** - Stream sub-second Claude 3.5 answers with resume context and solve coding challenges from silent desktop screenshots (`desktopCapturer`).
-- [ ] **Phase 5: 100% Free Architecture — Resume Vault, Local Offline Whisper STT & Web Voice AI Interviewer** - Implement resume vault with PDF/DOCX text extraction, replace cloud Deepgram with local offline Whisper STT (`@huggingface/transformers`), remove all Razorpay/billing paywalls for 100% free unlimited access, and build the free Voice AI Mock Interviewer simulator with post-call analytics and question bank.
-- [ ] **Phase 6: Hardening, Packaging, Stealth Verification & Automated Test Suites** - Neutral executable packaging (`SystemAudioHelper`), strict TypeScript, Vitest unit tests, and Playwright E2E anti-detection validation.
+- [x] **Phase 5: 100% Free Architecture — Resume Vault, Local Offline Whisper STT & Web Voice AI Interviewer** - Implement resume vault with PDF/DOCX text extraction, replace cloud Deepgram with local offline Whisper STT (`@huggingface/transformers`), remove all Razorpay/billing paywalls for 100% free unlimited access, and build the free Voice AI Mock Interviewer simulator with post-call analytics and question bank.
+- [x] **Phase 6: Hardening, Packaging, Stealth Verification & Automated Test Suites** - Neutral executable packaging (`SystemAudioHelper`), strict TypeScript, Vitest unit tests, and Playwright E2E anti-detection validation.
+
+> **Milestone v1.0 Shipped & Archived:** See full historical details in [.planning/milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 
 ## Phase Details
 
@@ -97,9 +99,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 05-01: Resume Vault upload with PDF/DOCX text extraction and session custom instructions manager.
-- [ ] 05-02: Replace Deepgram with local offline Whisper STT (`@huggingface/transformers`) and remove Razorpay/credit gating.
-- [ ] 05-03: Free Voice AI Mock Interviewer simulator (Web Speech API), post-call session notes generator, and question bank.
+- [x] 05-01: Resume Vault upload with PDF/DOCX text extraction and session custom instructions manager.
+- [x] 05-02: Replace Deepgram with local offline Whisper STT (`@huggingface/transformers`) and remove Razorpay/credit gating.
+- [x] 05-03: Free Voice AI Mock Interviewer simulator (Web Speech API), post-call session notes generator, and question bank.
 
 ### Phase 6: Hardening, Packaging, Stealth Verification & Automated Test Suites
 **Goal**: Harden the platform with strict type checking, automated tests, anti-detection validation, and production installer packaging.
@@ -113,9 +115,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 06-01: Electron Builder production packaging configuration with neutral process branding.
-- [ ] 06-02: Vitest unit test suites for audio mixing, Deepgram protocol, and Razorpay webhook validation.
-- [ ] 06-03: Playwright E2E test suites and anti-detection automated validation harness.
+- [x] 06-01: REA security & bundle hygiene audit — static analysis of compiled Vite renderer and Electron main bundles for secret key leakage, IPC boundary hygiene, and security flag verification.
+- [x] 06-02: Full automated test suite — run all 5 desktop CJS suites, add Vitest unit tests for `apps/web` API logic, extend Playwright E2E tests for new Phase 5 routes, and achieve zero TypeScript/lint errors.
+- [x] 06-03: Desktop installer packaging (`electron-builder` NSIS `.exe` + `.dmg`, `SystemAudioHelper` branding, Electron fuse hardening, macOS entitlements) + Vercel deployment config (`vercel.json`, `/api/health`, `.env.example`) + root `README.md`.
 
 ## Progress
 
@@ -128,5 +130,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Stealth Electron HUD Overlay & Screen Protection Core | 3/3 | Complete | 2026-10-25 |
 | 3. Native Dual-Channel Audio Pipeline & Deepgram Nova-2 Streaming | 3/3 | Complete | 2026-10-25 |
 | 4. Real-Time AI Answer Engine & Silent Vision Problem Solver | 3/3 | Complete | 2026-10-25 |
-| 5. Razorpay Billing, Mock AI Interviewer & Session Intelligence | 0/3 | Not started | - |
-| 6. Hardening, Packaging, Stealth Verification & Automated Test Suites | 0/3 | Not started | - |
+| 5. 100% Free Architecture — Resume Vault & Local Whisper STT | 3/3 | Complete | 2026-10-25 |
+| 6. Hardening, Packaging, Stealth Verification & Automated Test Suites | 3/3 | Complete | 2026-10-25 |

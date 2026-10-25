@@ -90,7 +90,7 @@ export class AIAnswerEngine {
           'anthropic-dangerous-direct-browser-access': 'true',
         },
         body: JSON.stringify({
-          model: 'claude-3-5-sonnet-20241022',
+          model: (import.meta as any).env?.VITE_ANTHROPIC_MODEL || 'claude-sonnet-4-20250514',
           max_tokens: 600,
           temperature: 0.2,
           stream: true,

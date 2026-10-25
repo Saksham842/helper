@@ -5,8 +5,11 @@ node_modules
 # Build outputs
 .next
 dist
+dist-electron
 out
 build
+release
+*.tsbuildinfo
 
 # Environment files
 .env

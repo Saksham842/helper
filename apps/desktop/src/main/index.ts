@@ -61,6 +61,7 @@ if (!gotTheLock) {
     registerGlobalShortcuts(hudManager);
 
     ipcMain.handle('app:version', () => app.getVersion());
+    ipcMain.handle('app:get-user-data-path', () => app.getPath('userData'));
 
 
     // Check cold-start deep link on Windows

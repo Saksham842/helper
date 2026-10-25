@@ -4,6 +4,7 @@ import type { HUDState } from '@parakeet/shared';
 export interface ElectronAPI {
   onAuthTokenReceived: (callback: (payload: { token: string; userId?: string; email?: string }) => void) => () => void;
   getAppVersion: () => Promise<string>;
+  getUserDataPath: () => Promise<string>;
   getHUDState: () => Promise<HUDState>;
   toggleHUDVisibility: () => Promise<HUDState>;
   setHUDClickThrough: (enabled: boolean) => Promise<HUDState>;
@@ -25,6 +26,7 @@ const api: ElectronAPI = {
     };
   },
   getAppVersion: () => ipcRenderer.invoke('app:version'),
+  getUserDataPath: () => ipcRenderer.invoke('app:get-user-data-path'),
   getHUDState: () => ipcRenderer.invoke('hud:get-state'),
   toggleHUDVisibility: () => ipcRenderer.invoke('hud:toggle-visibility'),
   setHUDClickThrough: (enabled: boolean) => ipcRenderer.invoke('hud:set-click-through', enabled),

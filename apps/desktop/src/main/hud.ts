@@ -102,6 +102,14 @@ export class HUDWindowManager {
 
   public showHUD(): void {
     if (!this.window) return;
+    try {
+      this.window.setContentProtection(true);
+      this.state.isContentProtected = true;
+    } catch (err) {
+      console.error('Failed to re-assert content protection on showHUD:', err);
+    }
+    this.window.setAlwaysOnTop(true, 'screen-saver', 1);
+    this.window.setFocusable(false);
     this.window.showInactive();
     this.state.isVisible = true;
     this.broadcastState();

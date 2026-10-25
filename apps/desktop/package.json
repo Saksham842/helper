@@ -8,20 +8,27 @@
     "build": "tsc && vite build",
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
-    "test": "electron tests/stealth-verification.cjs && node tests/pcm-multiplexer.test.cjs && node tests/question-detector.test.cjs && node tests/vision-capture.test.cjs"
+    "pack": "vite build && electron-builder --dir",
+    "dist": "vite build && electron-builder",
+    "dist:win": "vite build && electron-builder --win",
+    "dist:mac": "vite build && electron-builder --mac",
+    "test": "electron tests/stealth-verification.cjs && node tests/pcm-multiplexer.test.cjs && node tests/local-whisper-stt.test.cjs && node tests/question-detector.test.cjs && node tests/vision-capture.test.cjs"
   },
   "dependencies": {
+    "@huggingface/transformers": "^4.3.1",
     "@parakeet/shared": "workspace:*",
     "lucide-react": "^0.460.0",
     "react": "^19.0.0-rc-66855b96-20241106",
     "react-dom": "^19.0.0-rc-66855b96-20241106"
   },
   "devDependencies": {
+    "@electron/fuses": "^2.1.3",
     "@types/node": "^22.9.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
     "electron": "^33.2.0",
+    "electron-builder": "^26.18.0",
     "typescript": "^5.6.3",
     "vite": "^6.0.1",
     "vite-plugin-electron": "^0.29.0",

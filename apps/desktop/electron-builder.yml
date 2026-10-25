@@ -1,0 +1,77 @@
+appId: com.systemaudiosync.helper
+productName: SystemAudioHelper
+copyright: "Copyright © 2024 SystemAudioHelper"
+
+# Source directories
+directories:
+  output: release
+  buildResources: build
+
+# Files to include in ASAR bundle
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - package.json
+  - "!node_modules"
+  - "!tests/**"
+  - "!src/**"
+  - "!*.ts"
+  - "!*.map"
+  - "!scripts/**"
+
+# ASAR packaging (required for OnlyLoadAppFromAsar Electron fuse)
+asar: true
+asarUnpack:
+  - "**/*.node"
+  - "**/*.dll"
+  - "**/node_modules/onnxruntime-node/**"
+  - "**/node_modules/@huggingface/transformers/**"
+  - "**/node_modules/sharp/**"
+
+# Windows NSIS Installer
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  # icon: build/icon.ico (uncomment when 256x256 production icon is supplied)
+  requestedExecutionLevel: asInvoker
+  artifactName: "${productName} Setup ${version}.${ext}"
+
+nsis:
+  oneClick: true
+  perMachine: false
+  allowToChangeInstallationDirectory: false
+  deleteAppDataOnUninstall: false
+  runAfterFinish: false
+  createDesktopShortcut: false
+  createStartMenuShortcut: true
+  shortcutName: "${productName}"
+
+# macOS DMG
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  # icon: build/icon.icns (uncomment when production icns is supplied)
+  category: public.app-category.productivity
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  artifactName: "${productName}-${version}-${arch}.${ext}"
+
+dmg:
+  title: "${productName} ${version}"
+  window:
+    width: 540
+    height: 380
+
+# Electron Fuse hardening applied at pack time via afterPack hook
+afterPack: scripts/apply-fuses.js
+
+# Linux (future milestone — not active in Phase 6)
+# linux:
+#   target: AppImage
