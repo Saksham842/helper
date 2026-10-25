@@ -419,7 +419,7 @@ export default function VaultPage() {
                 <h3>Prompt Calibration</h3>
               </div>
               <p className="text-xs text-zinc-400 mb-5 leading-relaxed">
-                Direct how Claude 3.5 Sonnet formats your answers during live technical interviews and coding calls.
+                Direct how Groq Llama 3.3 formats your answers during live technical interviews and coding calls.
               </p>
 
               <form onSubmit={handleSaveDirectives} className="flex flex-col gap-4">
