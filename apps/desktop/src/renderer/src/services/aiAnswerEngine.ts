@@ -17,9 +17,13 @@ export class AIAnswerEngine {
   private onErrorCallbacks: ErrorCallback[] = [];
 
   constructor() {
+    // Priority: localStorage override > .env baked-in key
+    const envKey = (import.meta as any).env?.VITE_GROQ_API_KEY || '';
     const saved = localStorage.getItem('ghostpilot_groq_api_key');
-    if (saved) {
-      this.apiKey = saved;
+    this.apiKey = saved || envKey;
+    if (envKey && !saved) {
+      // Persist the env key to localStorage so it survives without re-reading env
+      localStorage.setItem('ghostpilot_groq_api_key', envKey);
     }
   }
 

@@ -48,7 +48,8 @@ export class VisionSolverService {
   }
 
   public async captureAndSolve(targetLanguage: string = 'Python'): Promise<void> {
-    const apiKey = localStorage.getItem('ghostpilot_groq_api_key');
+    const envKey = (import.meta as any).env?.VITE_GROQ_API_KEY || '';
+    const apiKey = localStorage.getItem('ghostpilot_groq_api_key') || envKey;
     if (!apiKey) {
       this.onErrorCallbacks.forEach((cb) =>
         cb('Groq API key required for Vision Solver. Paste your key (starts with gsk_) in the input below.')
