@@ -64,7 +64,7 @@ export class AIAnswerEngine {
   public async generateAnswer(question: string, history: TranscriptMessage[] = []): Promise<void> {
     if (!this.apiKey) {
       this.onErrorCallbacks.forEach((cb) =>
-        cb('Groq API Key is not set. Please provide your API key (starts with gsk_) in the HUD settings drawer.')
+        cb('Groq API Key required. Paste your key (starts with gsk_) in the input below to enable AI answers.')
       );
       return;
     }

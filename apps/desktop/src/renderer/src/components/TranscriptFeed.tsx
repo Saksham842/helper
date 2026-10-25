@@ -96,9 +96,9 @@ export const TranscriptFeed: React.FC = () => {
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: '12px',
-        flex: 1,
-        minHeight: 0,
+        gap: '10px',
+        width: '100%',
+        flexShrink: 0,
       }}
     >
       {/* Session Controls & VU Meters Bar */}
@@ -108,9 +108,9 @@ export const TranscriptFeed: React.FC = () => {
           flexDirection: 'column',
           gap: '10px',
           padding: '12px',
-          borderRadius: '14px',
-          background: 'rgba(255, 255, 255, 0.03)',
-          border: '1px solid rgba(255, 255, 255, 0.07)',
+          borderRadius: '12px',
+          background: '#111827',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -301,17 +301,15 @@ export const TranscriptFeed: React.FC = () => {
       {/* Real-Time Transcript Message Feed */}
       <div
         style={{
-          flex: 1,
-          minHeight: '180px',
-          maxHeight: '260px',
+          height: '210px',
           overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
           gap: '8px',
-          padding: '10px',
-          borderRadius: '14px',
-          background: 'rgba(0, 0, 0, 0.25)',
-          border: '1px solid rgba(255, 255, 255, 0.05)',
+          padding: '12px',
+          borderRadius: '12px',
+          background: '#0a0f1d',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
         }}
       >
         {messages.length === 0 ? (

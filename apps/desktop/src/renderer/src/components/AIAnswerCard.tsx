@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { aiAnswerEngine } from '../services/aiAnswerEngine';
 import { questionDetector } from '../services/questionDetector';
-import { Sparkles, Copy, Check, X, RefreshCw, AlertCircle } from 'lucide-react';
+import { Sparkles, Copy, Check, X, RefreshCw, AlertCircle, Key } from 'lucide-react';
 
 export const AIAnswerCard: React.FC = () => {
   const [question, setQuestion] = useState<string>('');
@@ -9,6 +9,7 @@ export const AIAnswerCard: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [inlineKey, setInlineKey] = useState<string>('');
 
   useEffect(() => {
     // 1. Automatic Question Detection listener
@@ -81,26 +82,26 @@ export const AIAnswerCard: React.FC = () => {
           justifyContent: 'space-between',
           padding: '10px 12px',
           borderRadius: '12px',
-          background: 'rgba(255, 255, 255, 0.02)',
-          border: '1px solid rgba(255, 255, 255, 0.06)',
+          background: '#111827',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Sparkles size={14} color="#10b981" />
-          <span style={{ fontSize: '12px', color: '#a1a1aa' }}>
+          <span style={{ fontSize: '12px', color: '#cbd5e1' }}>
             Listening for interviewer questions...
           </span>
         </div>
         <button
           onClick={handleManualAsk}
           style={{
-            padding: '4px 10px',
+            padding: '5px 12px',
             borderRadius: '6px',
             fontSize: '11px',
             fontWeight: 600,
-            background: 'rgba(16, 185, 129, 0.15)',
+            background: 'rgba(16, 185, 129, 0.2)',
             color: '#34d399',
-            border: '1px solid rgba(16, 185, 129, 0.3)',
+            border: '1px solid rgba(16, 185, 129, 0.4)',
             cursor: 'pointer',
           }}
         >
@@ -118,9 +119,9 @@ export const AIAnswerCard: React.FC = () => {
         gap: '8px',
         padding: '12px',
         borderRadius: '14px',
-        background: 'linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.03) 100%)',
-        border: '1px solid rgba(16, 185, 129, 0.3)',
-        boxShadow: '0 8px 24px rgba(16, 185, 129, 0.1)',
+        background: '#0d1f18',
+        border: '1px solid rgba(16, 185, 129, 0.35)',
+        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6)',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -177,9 +178,61 @@ export const AIAnswerCard: React.FC = () => {
       )}
 
       {error ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#f87171' }}>
-          <AlertCircle size={12} />
-          <span>{error}</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#f87171' }}>
+            <AlertCircle size={12} />
+            <span>{error}</span>
+          </div>
+          {error.toLowerCase().includes('groq') && (
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <input
+                type="password"
+                placeholder="Paste Groq key (starts with gsk_)"
+                value={inlineKey}
+                onChange={(e) => setInlineKey(e.target.value)}
+                style={{
+                  flex: 1,
+                  padding: '5px 8px',
+                  borderRadius: '6px',
+                  background: '#090d16',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  color: '#ffffff',
+                  fontSize: '11px',
+                  outline: 'none',
+                }}
+              />
+              <button
+                onClick={() => {
+                  if (inlineKey.trim()) {
+                    const k = inlineKey.trim();
+                    localStorage.setItem('ghostpilot_groq_api_key', k);
+                    aiAnswerEngine.setApiKey(k);
+                    setError(null);
+                    if (question) {
+                      aiAnswerEngine.generateAnswer(question);
+                    }
+                  }
+                }}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: '6px',
+                  background: '#10b981',
+                  color: '#ffffff',
+                  border: 'none',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <Key size={11} />
+                <span>Save Key</span>
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div

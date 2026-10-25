@@ -38,8 +38,8 @@ export class HUDWindowManager {
     const primaryDisplay = screen.getPrimaryDisplay();
     const { width: screenWidth, x: screenX, y: screenY } = primaryDisplay.workArea;
 
-    const windowWidth = 440;
-    const windowHeight = 620;
+    const windowWidth = 460;
+    const windowHeight = 680;
     const posX = screenX + screenWidth - windowWidth - 24;
     const posY = screenY + 24;
 

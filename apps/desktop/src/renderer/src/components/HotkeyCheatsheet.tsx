@@ -46,8 +46,8 @@ export const HotkeyCheatsheet: React.FC = () => {
         gap: '8px',
         padding: '12px',
         borderRadius: '14px',
-        background: 'rgba(255, 255, 255, 0.02)',
-        border: '1px solid rgba(255, 255, 255, 0.06)',
+        background: '#111827',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
       }}
     >
       <div

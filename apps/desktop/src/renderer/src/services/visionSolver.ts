@@ -51,7 +51,7 @@ export class VisionSolverService {
     const apiKey = localStorage.getItem('ghostpilot_groq_api_key');
     if (!apiKey) {
       this.onErrorCallbacks.forEach((cb) =>
-        cb('Groq API key required for Vision problem solver. Please add your key (starts with gsk_) in HUD settings.')
+        cb('Groq API key required for Vision Solver. Paste your key (starts with gsk_) in the input below.')
       );
       return;
     }

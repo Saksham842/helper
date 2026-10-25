@@ -16,25 +16,25 @@ export const AuthStatus: React.FC<AuthStatusProps> = ({
     return (
       <div style={{
         display: 'flex',
-        flexDirection: 'column',
-        gap: '8px',
-        padding: '16px',
-        borderRadius: '16px',
-        background: 'rgba(16, 185, 129, 0.08)',
-        border: '1px solid rgba(16, 185, 129, 0.25)',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '8px 12px',
+        borderRadius: '10px',
+        background: '#0d1f1c',
+        border: '1px solid rgba(16, 185, 129, 0.3)',
         color: '#10b981',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
-          <ShieldCheck size={18} />
-          <span>Desktop Copilot Connected</span>
-        </div>
-        <div style={{ fontSize: '13px', color: '#d1fae5' }}>
-          Signed in as <strong>{userEmail || 'Active Candidate'}</strong>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <ShieldCheck size={16} />
+          <span style={{ fontSize: '12px', fontWeight: 600 }}>Connected</span>
+          <span style={{ fontSize: '11px', color: '#94a3b8' }}>
+            ({userEmail || 'Active Candidate'})
+          </span>
         </div>
         {token && (
-          <div style={{ fontSize: '11px', color: '#6ee7b7', wordBreak: 'break-all' }}>
-            Session Active (Token: {token.slice(0, 12)}...)
-          </div>
+          <span style={{ fontSize: '10px', color: '#34d399', background: 'rgba(16, 185, 129, 0.15)', padding: '2px 6px', borderRadius: '4px' }}>
+            Vault Synced
+          </span>
         )}
       </div>
     );
@@ -43,21 +43,21 @@ export const AuthStatus: React.FC<AuthStatusProps> = ({
   return (
     <div style={{
       display: 'flex',
-      flexDirection: 'column',
-      gap: '8px',
-      padding: '16px',
-      borderRadius: '16px',
-      background: 'rgba(239, 68, 68, 0.08)',
-      border: '1px solid rgba(239, 68, 68, 0.25)',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '8px 12px',
+      borderRadius: '10px',
+      background: '#1c131d',
+      border: '1px solid rgba(239, 68, 68, 0.3)',
       color: '#f87171',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 600 }}>
-        <Radio size={18} />
-        <span>Waiting for Web Connection</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Radio size={16} />
+        <span style={{ fontSize: '12px', fontWeight: 600 }}>Web Link Offline</span>
       </div>
-      <div style={{ fontSize: '13px', color: '#fecaca' }}>
-        Log in to the GhostPilot web dashboard and click <strong>&quot;Launch Desktop App&quot;</strong> to link this overlay.
-      </div>
+      <span style={{ fontSize: '10px', color: '#fca5a5' }}>
+        Click &quot;Launch Desktop App&quot; in web dashboard
+      </span>
     </div>
   );
 };

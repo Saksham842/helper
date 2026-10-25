@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { visionSolverService } from '../services/visionSolver';
-import { Camera, Code, Copy, Check, X, RefreshCw, Cpu } from 'lucide-react';
+import { aiAnswerEngine } from '../services/aiAnswerEngine';
+import { Camera, Code, Copy, Check, X, RefreshCw, Cpu, Key } from 'lucide-react';
 
 export const VisionSolutionCard: React.FC = () => {
   const [solutionMarkdown, setSolutionMarkdown] = useState<string>('');
@@ -8,6 +9,7 @@ export const VisionSolutionCard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [targetLang, setTargetLang] = useState<string>('Python');
   const [copied, setCopied] = useState<boolean>(false);
+  const [inlineKey, setInlineKey] = useState<string>('');
 
   useEffect(() => {
     // Listen for global shortcut CommandOrControl+Shift+H
@@ -79,14 +81,14 @@ export const VisionSolutionCard: React.FC = () => {
           justifyContent: 'space-between',
           padding: '8px 12px',
           borderRadius: '12px',
-          background: 'rgba(255, 255, 255, 0.02)',
-          border: '1px solid rgba(255, 255, 255, 0.06)',
+          background: '#111827',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Camera size={14} color="#60a5fa" />
-          <span style={{ fontSize: '11px', color: '#a1a1aa' }}>
-            Coding Assessment Vision Solver
+          <span style={{ fontSize: '11px', color: '#cbd5e1' }}>
+            Coding Vision Solver
           </span>
         </div>
 
@@ -95,12 +97,12 @@ export const VisionSolutionCard: React.FC = () => {
             value={targetLang}
             onChange={(e) => setTargetLang(e.target.value)}
             style={{
-              background: 'rgba(0, 0, 0, 0.5)',
-              color: '#d4d4d8',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              background: '#090d16',
+              color: '#cbd5e1',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
               borderRadius: '6px',
               fontSize: '11px',
-              padding: '2px 4px',
+              padding: '3px 6px',
               outline: 'none',
               cursor: 'pointer',
             }}
@@ -118,13 +120,13 @@ export const VisionSolutionCard: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '4px',
-              padding: '4px 8px',
+              padding: '4px 10px',
               borderRadius: '6px',
               fontSize: '11px',
               fontWeight: 600,
-              background: 'rgba(59, 130, 246, 0.15)',
+              background: 'rgba(59, 130, 246, 0.2)',
               color: '#60a5fa',
-              border: '1px solid rgba(59, 130, 246, 0.3)',
+              border: '1px solid rgba(59, 130, 246, 0.4)',
               cursor: 'pointer',
             }}
             title="Press Ctrl+Shift+H anytime to solve on-screen problem"
@@ -145,9 +147,9 @@ export const VisionSolutionCard: React.FC = () => {
         gap: '8px',
         padding: '12px',
         borderRadius: '14px',
-        background: 'linear-gradient(180deg, rgba(30, 58, 138, 0.2) 0%, rgba(15, 23, 42, 0.4) 100%)',
-        border: '1px solid rgba(59, 130, 246, 0.35)',
-        boxShadow: '0 8px 24px rgba(37, 99, 235, 0.15)',
+        background: '#0e1726',
+        border: '1px solid rgba(59, 130, 246, 0.4)',
+        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.6)',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -198,8 +200,58 @@ export const VisionSolutionCard: React.FC = () => {
       </div>
 
       {error ? (
-        <div style={{ fontSize: '11px', color: '#f87171', padding: '6px 8px', borderRadius: '6px', background: 'rgba(239, 68, 68, 0.1)' }}>
-          {error}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ fontSize: '11px', color: '#f87171', padding: '6px 8px', borderRadius: '6px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+            {error}
+          </div>
+          {error.toLowerCase().includes('groq') && (
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <input
+                type="password"
+                placeholder="Paste Groq key (starts with gsk_)"
+                value={inlineKey}
+                onChange={(e) => setInlineKey(e.target.value)}
+                style={{
+                  flex: 1,
+                  padding: '5px 8px',
+                  borderRadius: '6px',
+                  background: '#090d16',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  color: '#ffffff',
+                  fontSize: '11px',
+                  outline: 'none',
+                }}
+              />
+              <button
+                onClick={() => {
+                  if (inlineKey.trim()) {
+                    const k = inlineKey.trim();
+                    localStorage.setItem('ghostpilot_groq_api_key', k);
+                    aiAnswerEngine.setApiKey(k);
+                    setError(null);
+                    handleSolve();
+                  }
+                }}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: '6px',
+                  background: '#10b981',
+                  color: '#ffffff',
+                  border: 'none',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <Key size={11} />
+                <span>Save &amp; Solve</span>
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div
