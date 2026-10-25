@@ -217,7 +217,7 @@ export const VisionSolutionCard: React.FC = () => {
             border: '1px solid rgba(255, 255, 255, 0.08)',
           }}
         >
-          {solutionMarkdown || 'Analyzing screenshot via Claude 3.5 Vision...'}
+          {solutionMarkdown || 'Analyzing screenshot via Groq Llama 4 Vision...'}
         </div>
       )}
     </div>

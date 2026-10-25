@@ -1,4 +1,4 @@
-import type { SpeakerRole } from '@parakeet/shared';
+import type { SpeakerRole } from '@ghostpilot/shared';
 import { vadChunker, SpeechSegment } from './vadChunker';
 import { questionDetector } from './questionDetector';
 
@@ -13,6 +13,36 @@ export interface TranscriptMessage {
 export type LocalSTTStatus = 'disconnected' | 'loading' | 'ready' | 'transcribing' | 'error';
 export type TranscriptCallback = (message: TranscriptMessage) => void;
 export type StatusCallback = (status: LocalSTTStatus, message?: string) => void;
+
+function createWavBlob(samples: Float32Array, sampleRate = 16000): Blob {
+  const pcm16 = new Int16Array(samples.length);
+  for (let i = 0; i < samples.length; i++) {
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    pcm16[i] = s < 0 ? s * 32768 : s * 32767;
+  }
+  const buffer = new ArrayBuffer(44 + pcm16.length * 2);
+  const view = new DataView(buffer);
+
+  // RIFF header
+  view.setUint32(0, 0x52494646, false); // "RIFF"
+  view.setUint32(4, 36 + pcm16.length * 2, true);
+  view.setUint32(8, 0x57415645, false); // "WAVE"
+  // fmt subchunk
+  view.setUint32(12, 0x666d7420, false); // "fmt "
+  view.setUint32(16, 16, true); // Subchunk1Size (16 for PCM)
+  view.setUint16(20, 1, true); // AudioFormat (1 for PCM)
+  view.setUint16(22, 1, true); // NumChannels (1 mono)
+  view.setUint32(24, sampleRate, true); // SampleRate
+  view.setUint32(28, sampleRate * 2, true); // ByteRate (SampleRate * 1 * 16 / 8)
+  view.setUint16(32, 2, true); // BlockAlign (1 * 16 / 8)
+  view.setUint16(34, 16, true); // BitsPerSample
+  // data subchunk
+  view.setUint32(36, 0x64617461, false); // "data"
+  view.setUint32(40, pcm16.length * 2, true);
+
+  new Uint8Array(buffer, 44).set(new Uint8Array(pcm16.buffer));
+  return new Blob([buffer], { type: 'audio/wav' });
+}
 
 export class LocalWhisperClient {
   private status: LocalSTTStatus = 'disconnected';
@@ -137,22 +167,51 @@ export class LocalWhisperClient {
       if (!segment) continue;
 
       try {
-        if (!this.transcriber) {
-          await this.initialize();
+        let text = '';
+        const groqApiKey = localStorage.getItem('ghostpilot_groq_api_key');
+
+        // 1. Primary: Groq ultra-low latency (<200ms) whisper-large-v3-turbo (0% local CPU)
+        if (groqApiKey) {
+          try {
+            const wavBlob = createWavBlob(segment.audio, 16000);
+            const formData = new FormData();
+            formData.append('file', wavBlob, 'audio.wav');
+            formData.append('model', 'whisper-large-v3-turbo');
+            formData.append('temperature', '0');
+
+            const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${groqApiKey}`,
+              },
+              body: formData,
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              text = data?.text?.trim() || '';
+            }
+          } catch (groqSttErr) {
+            console.warn('[LocalWhisper] Groq cloud STT skipped or offline, falling back to on-device model:', groqSttErr);
+          }
         }
 
-        this.updateStatus('transcribing');
+        // 2. Offline Fallback: Local onnx-community/whisper-base.en via Transformers.js
+        if (!text) {
+          if (!this.transcriber) {
+            await this.initialize();
+          }
 
-        let text = '';
-        if (typeof this.transcriber === 'function') {
-          const res = await this.transcriber(segment.audio, {
-            language: 'english',
-            task: 'transcribe',
-          });
-          text = res?.text?.trim() || '';
-        } else if (typeof this.transcriber?.transcribe === 'function') {
-          const res = await this.transcriber.transcribe(segment.audio);
-          text = res?.text?.trim() || '';
+          if (typeof this.transcriber === 'function') {
+            const res = await this.transcriber(segment.audio, {
+              language: 'english',
+              task: 'transcribe',
+            });
+            text = res?.text?.trim() || '';
+          } else if (typeof this.transcriber?.transcribe === 'function') {
+            const res = await this.transcriber.transcribe(segment.audio);
+            text = res?.text?.trim() || '';
+          }
         }
 
         if (text) {

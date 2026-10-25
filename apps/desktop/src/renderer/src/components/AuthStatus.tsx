@@ -56,7 +56,7 @@ export const AuthStatus: React.FC<AuthStatusProps> = ({
         <span>Waiting for Web Connection</span>
       </div>
       <div style={{ fontSize: '13px', color: '#fecaca' }}>
-        Log in to the Parakeet AI web dashboard and click <strong>&quot;Launch Desktop App&quot;</strong> to link this overlay.
+        Log in to the GhostPilot web dashboard and click <strong>&quot;Launch Desktop App&quot;</strong> to link this overlay.
       </div>
     </div>
   );

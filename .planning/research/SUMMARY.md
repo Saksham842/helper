@@ -1,6 +1,6 @@
 # Project Research Summary
 
-**Project:** Parakeet AI - Real-Time AI Interview & Call Copilot
+**Project:** GhostPilot - Real-Time AI Interview & Call Copilot
 **Domain:** Stealth Desktop Overlay & Cloud Web Platform
 **Synthesized:** 2026-10-24
 **Status:** COMPLETE
@@ -38,7 +38,7 @@
 
 ## Sources
 
-- Parakeet AI Production Application (`https://www.parakeet-ai.com/`)
+- GhostPilot Production Application (`https://www.ghostpilot.com/`)
 - Microsoft Win32 API: `SetWindowDisplayAffinity` (`WDA_EXCLUDEFROMCAPTURE`) Documentation
 - Apple macOS Developer Documentation: `NSWindow.sharingType` (`NSWindowSharingNone`)
 - Deepgram Nova-2 Real-Time Streaming WebSocket Protocol

@@ -36,9 +36,14 @@ export class AudioMultiplexer {
   public async start(loopbackStream: MediaStream, micStream: MediaStream): Promise<void> {
     if (this.isRunning) return;
 
-    // Deepgram Nova-2 optimal sample rate is 16,000 Hz
+    // Deepgram / Whisper optimal sample rate is 16,000 Hz
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    this.audioContext = new AudioContextClass({ sampleRate: 16000 });
+    try {
+      this.audioContext = new AudioContextClass({ sampleRate: 16000 });
+    } catch {
+      console.warn('[AudioMultiplexer] Explicit sampleRate: 16000 rejected by driver (e.g. Bluetooth AG), falling back to default sampleRate');
+      this.audioContext = new AudioContextClass();
+    }
 
     if (this.audioContext.state === 'suspended') {
       await this.audioContext.resume();

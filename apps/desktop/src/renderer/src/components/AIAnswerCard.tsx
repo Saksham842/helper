@@ -34,11 +34,21 @@ export const AIAnswerCard: React.FC = () => {
       setIsGenerating(false);
     });
 
+    let unsubHotkey: (() => void) | undefined;
+    if (window.electronAPI?.onHotkeyPressed) {
+      unsubHotkey = window.electronAPI.onHotkeyPressed((action) => {
+        if (action === 'manual_ask') {
+          questionDetector.triggerManual();
+        }
+      });
+    }
+
     return () => {
       unsubDetector();
       unsubToken();
       unsubComplete();
       unsubError();
+      if (unsubHotkey) unsubHotkey();
     };
   }, []);
 

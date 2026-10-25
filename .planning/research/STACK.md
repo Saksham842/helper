@@ -1,4 +1,4 @@
-# Stack Research: Parakeet AI Platform
+# Stack Research: GhostPilot Platform
 
 **Domain:** Real-Time AI Copilot & Stealth Desktop Overlay
 **Researched:** 2026-10-24

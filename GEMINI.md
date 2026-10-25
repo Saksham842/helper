@@ -2,9 +2,9 @@
 
 ## Project
 
-**Parakeet AI - Real-Time AI Interview & Call Copilot**
+**GhostPilot - Real-Time AI Interview & Call Copilot**
 
-Parakeet AI is a production-grade, real-time AI Interview & Call Copilot platform engineered to provide instant, sub-second answers, coding solutions, and speech transcription during live technical interviews and high-stakes calls. The system operates as a synchronized Turborepo monorepo comprising a Next.js 15 web platform (dashboard, resume vault, question bank, Razorpay credit billing) and an Electron desktop stealth HUD overlay that remains completely invisible to screen shares (Zoom, Google Meet, Teams), immune to browser tab-switch and blur detection, and captures loopback system audio without recording banners.
+GhostPilot is a production-grade, real-time AI Interview & Call Copilot platform engineered to provide instant, sub-second answers, coding solutions, and speech transcription during live technical interviews and high-stakes calls. The system operates as a synchronized Turborepo monorepo comprising a Next.js 15 web platform (dashboard, resume vault, question bank, Razorpay credit billing) and an Electron desktop stealth HUD overlay that remains completely invisible to screen shares (Zoom, Google Meet, Teams), immune to browser tab-switch and blur detection, and captures loopback system audio without recording banners.
 
 **Core Value:** Deliver an undetectable, sub-second latency real-time copilot HUD that captures both caller loopback audio and candidate microphone input, transcribes and diarizes live speech via Deepgram Nova-2, and streams context-aware answers and vision-based coding solutions from Claude without forfeiting OS focus or appearing in screen captures.
 

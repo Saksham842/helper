@@ -9,4 +9,4 @@ Plan 05-02 achieved complete operational independence from external paid audio A
 - **Hardware-Deterministic Diarization**: Fed the dual-channel 16,000 Hz Linear16 PCM streams from `AudioMultiplexer` directly into the VAD chunker, automatically tagging Channel 0 as `speaker: 'interviewer'` and Channel 1 as `speaker: 'candidate'` and dispatching directly into Phase 4's `QuestionDetector`.
 - **UI Modernization**: Updated `apps/desktop/src/renderer/src/components/TranscriptFeed.tsx` to display the "Whisper STT (100% Offline)" engine badge, removed Deepgram API key input drawer, and maintained dual-channel VU meters.
 - **Environment Schema Sanitation**: Removed `DEEPGRAM_API_KEY` and all `RAZORPAY_*` variables from environment configurations.
-- **Comprehensive Testing**: Created `apps/desktop/tests/local-whisper-stt.test.cjs` and verified all 5 test suites in `@parakeet/desktop` pass with 100% success.
+- **Comprehensive Testing**: Created `apps/desktop/tests/local-whisper-stt.test.cjs` and verified all 5 test suites in `@ghostpilot/desktop` pass with 100% success.

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { HUDState } from '@parakeet/shared';
+import type { HUDState } from '@ghostpilot/shared';
 import { StealthBadge } from './StealthBadge';
 import { HotkeyCheatsheet } from './HotkeyCheatsheet';
 import {
@@ -44,11 +44,18 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({ children }) => {
     return undefined;
   }, []);
 
+  const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     if (window.electronAPI?.onHotkeyPressed) {
       const cleanup = window.electronAPI.onHotkeyPressed((action) => {
         setLastHotkeyAction(action);
         setTimeout(() => setLastHotkeyAction(null), 3000);
+        if (action === 'scroll_down' && scrollContainerRef.current) {
+          scrollContainerRef.current.scrollBy({ top: 120, behavior: 'smooth' });
+        } else if (action === 'scroll_up' && scrollContainerRef.current) {
+          scrollContainerRef.current.scrollBy({ top: -120, behavior: 'smooth' });
+        }
       });
       return cleanup;
     }
@@ -135,7 +142,7 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({ children }) => {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontWeight: 700, fontSize: '14px', letterSpacing: '-0.3px', color: '#ffffff' }}>
-                Parakeet AI
+                GhostPilot
               </span>
               <span
                 style={{
@@ -192,6 +199,7 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({ children }) => {
       {/* Main Body */}
       {!isCollapsed && (
         <div
+          ref={scrollContainerRef}
           style={{
             flex: 1,
             display: 'flex',

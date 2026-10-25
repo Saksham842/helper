@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { HUDState } from '@parakeet/shared';
+import type { HUDState } from '@ghostpilot/shared';
 
 export interface ElectronAPI {
   onAuthTokenReceived: (callback: (payload: { token: string; userId?: string; email?: string }) => void) => () => void;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Keyboard, MousePointer, Eye, Sliders, Sparkles } from 'lucide-react';
+import { Keyboard, MousePointer, Eye, Sliders, Sparkles, ShieldAlert, CornerDownLeft } from 'lucide-react';
 
 export const HotkeyCheatsheet: React.FC = () => {
   const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
@@ -7,24 +7,34 @@ export const HotkeyCheatsheet: React.FC = () => {
 
   const shortcuts = [
     {
-      combo: `${modKey}+Shift+V`,
-      action: 'Toggle HUD Hide/Show',
-      icon: <Eye size={13} color="#a1a1aa" />,
+      combo: `${modKey}+\\`,
+      action: 'Toggle HUD Overlay',
+      icon: <Eye size={13} color="#34d399" />,
     },
     {
       combo: `${modKey}+Shift+M`,
       action: 'Toggle Click-Through',
-      icon: <MousePointer size={13} color="#a1a1aa" />,
+      icon: <MousePointer size={13} color="#60a5fa" />,
     },
     {
-      combo: `${modKey}+Shift+↑/↓`,
-      action: 'Adjust HUD Opacity',
-      icon: <Sliders size={13} color="#a1a1aa" />,
+      combo: `${modKey}+Shift+Q`,
+      action: 'Panic Crash-Hide',
+      icon: <ShieldAlert size={13} color="#f87171" />,
     },
     {
       combo: `${modKey}+Shift+H`,
-      action: 'Ask AI / Solve Problem',
-      icon: <Sparkles size={13} color="#10b981" />,
+      action: 'Vision Code Solver',
+      icon: <Sparkles size={13} color="#38bdf8" />,
+    },
+    {
+      combo: `${modKey}+Enter`,
+      action: 'Ask AI Now (Manual)',
+      icon: <CornerDownLeft size={13} color="#a7f3d0" />,
+    },
+    {
+      combo: `${modKey}+Shift+↑/↓`,
+      action: 'Opacity & Scroll',
+      icon: <Sliders size={13} color="#fbbf24" />,
     },
   ];
 

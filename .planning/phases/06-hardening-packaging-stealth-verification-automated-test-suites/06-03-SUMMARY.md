@@ -14,7 +14,7 @@ Configured production packaging for the desktop application using `electron-buil
   - Windows: NSIS one-click installer (`.exe`) targeting `x64` with `requestedExecutionLevel: requireAdministrator` for WASAPI loopback capture.
   - macOS: `.dmg` target (`x64`, `arm64`) with hardened runtime and entitlements.
 - **ASAR Packaging:** Enabled with `asarUnpack: ["**/*.node"]` to isolate source code and prevent runtime tampering.
-- **Pack Verification:** Successfully ran `pnpm --filter @parakeet/desktop run pack` producing `release/win-unpacked/SystemAudioHelper.exe` (188 MB) and `resources/app.asar` (27.7 MB).
+- **Pack Verification:** Successfully ran `pnpm --filter @ghostpilot/desktop run pack` producing `release/win-unpacked/SystemAudioHelper.exe` (188 MB) and `resources/app.asar` (27.7 MB).
 
 ### 2. Electron Fuse Hardening (`apps/desktop/scripts/apply-fuses.js`)
 Programmatically flipped production security fuses via `@electron/fuses` during `afterPack`:
@@ -31,7 +31,7 @@ Configured entitlements for macOS hardened runtime:
 
 ### 4. Vercel Web Deployment (`apps/web/vercel.json`)
 - Framework configured for `nextjs` with build command targeting the Turborepo workspace.
-- `/api/health` route implemented returning `{ status: "ok", version: "1.0.0", service: "Parakeet AI Web Platform", timestamp: "..." }`.
+- `/api/health` route implemented returning `{ status: "ok", version: "1.0.0", service: "GhostPilot Web Platform", timestamp: "..." }`.
 - Production build verified: `next build` generates all 16 static and dynamic routes with 0 errors.
 
 ### 5. Documentation & Environment Templates

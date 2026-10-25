@@ -10,7 +10,7 @@
 ### 1. Turborepo Monorepo with Next.js 15 & Electron + Vite
 
 - **Package Manager**: Use `pnpm` with `pnpm-workspace.yaml`. Turborepo 2.x handles task caching across `apps/*` and `packages/*`.
-- **Shared Package Configuration**: `packages/shared` should export TypeScript source directly with path aliases or compile to ESM/CJS so both Next.js App Router (which transpiles workspace packages via `transpilePackages: ['@parakeet/shared']`) and Vite in `apps/desktop` can resolve types and schemas without bundling bottlenecks.
+- **Shared Package Configuration**: `packages/shared` should export TypeScript source directly with path aliases or compile to ESM/CJS so both Next.js App Router (which transpiles workspace packages via `transpilePackages: ['@ghostpilot/shared']`) and Vite in `apps/desktop` can resolve types and schemas without bundling bottlenecks.
 - **Strict TypeScript**: Base `tsconfig.base.json` in root with `"strict": true`, `"noImplicitAny": true`, `"isolatedModules": true`, `"esModuleInterop": true`.
 
 ### 2. Supabase Migrations & Row Level Security (RLS)

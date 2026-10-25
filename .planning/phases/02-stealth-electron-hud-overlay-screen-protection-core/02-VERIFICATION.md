@@ -13,7 +13,7 @@
 
 ### Stealth Test Harness Output
 ```
-> @parakeet/desktop@1.0.0 test
+> @ghostpilot/desktop@1.0.0 test
 > electron tests/stealth-verification.cjs
 
 [Test Harness] Running Electron Stealth Overlay Verification...
@@ -30,7 +30,7 @@
 ```
 
 ### Typecheck & Build Summary
-- `turbo run typecheck`: 3/3 packages passed with zero errors (`@parakeet/shared`, `@parakeet/desktop`, `@parakeet/web`).
+- `turbo run typecheck`: 3/3 packages passed with zero errors (`@ghostpilot/shared`, `@ghostpilot/desktop`, `@ghostpilot/web`).
 - `turbo run build`: 2/2 apps built production bundles cleanly (`apps/web` Next.js 15 bundle + `apps/desktop` Electron Vite bundle).
 
 ## Verdict: Phase 2 Complete & Verified

@@ -11,5 +11,5 @@
 - Integrated `HUDWindowManager` into [`apps/desktop/src/main/index.ts`](file:///c:/Users/acer/Desktop/parakeet%20ai/apps/desktop/src/main/index.ts).
 
 ## Verification
-- Built and validated with `pnpm --filter @parakeet/desktop build`.
+- Built and validated with `pnpm --filter @ghostpilot/desktop build`.
 - Monorepo typecheck passed cleanly with 0 errors.

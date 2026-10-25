@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-Phase 5 has successfully pivoted Parakeet AI into a **100% Free, Unlimited, and Local Offline Architecture**:
+Phase 5 has successfully pivoted GhostPilot into a **100% Free, Unlimited, and Local Offline Architecture**:
 1. All Razorpay billing dependencies and credit paywalls were completely eliminated across `apps/web` and `apps/desktop`. All AI sessions and copilot features are 100% free and unlimited.
 2. In `apps/desktop`, the cloud Deepgram Nova-2 client was replaced with a 100% free, local offline Speech-to-Text engine powered by `@huggingface/transformers` (quantized ONNX `whisper-base.en`) and a dual-channel VAD energy chunker. The existing 16kHz PCM stream preserves hardware-deterministic diarization (`[Interviewer]` vs `[Candidate]`) without requiring any `DEEPGRAM_API_KEY`.
 3. In `apps/web`, the Document & Resume Vault enables PDF and DOCX uploads (max 10MB) with server-side text extraction (`pdf-parse`, `mammoth`) stored in Supabase Storage and exposed via `/api/vault/active` for desktop HUD prompt injection.
@@ -25,9 +25,9 @@ Phase 5 has successfully pivoted Parakeet AI into a **100% Free, Unlimited, and 
 
 ## Automated Test Suites Output
 
-### Desktop Test Suite (`pnpm --filter @parakeet/desktop test`)
+### Desktop Test Suite (`pnpm --filter @ghostpilot/desktop test`)
 ```
-> @parakeet/desktop@1.0.0 test
+> @ghostpilot/desktop@1.0.0 test
 > electron tests/stealth-verification.cjs && node tests/pcm-multiplexer.test.cjs && node tests/local-whisper-stt.test.cjs && node tests/question-detector.test.cjs && node tests/vision-capture.test.cjs
 
 [Test Harness] Running Electron Stealth Overlay Verification...
@@ -78,7 +78,7 @@ Phase 5 has successfully pivoted Parakeet AI into a **100% Free, Unlimited, and 
 ```
 
 ### Build & Typecheck Summary
-- `turbo run typecheck`: 3/3 packages (`@parakeet/shared`, `@parakeet/desktop`, `@parakeet/web`) passed with zero errors.
+- `turbo run typecheck`: 3/3 packages (`@ghostpilot/shared`, `@ghostpilot/desktop`, `@ghostpilot/web`) passed with zero errors.
 - `apps/web` build: Next.js 15 production build compiled all 15 routes cleanly.
 - `apps/desktop` build: Vite 6 compiled renderer assets and Electron main/preload bundles cleanly.
 

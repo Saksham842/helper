@@ -1,4 +1,4 @@
-import type { SpeakerRole } from '@parakeet/shared';
+import type { SpeakerRole } from '@ghostpilot/shared';
 
 export interface TranscriptMessage {
   id: string;

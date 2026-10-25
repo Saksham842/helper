@@ -1,4 +1,4 @@
-# Architecture Research: Parakeet AI Platform
+# Architecture Research: GhostPilot Platform
 
 **Domain:** Turborepo Monorepo with Native Stealth Overlay & Cloud Web Platform
 **Researched:** 2026-10-24

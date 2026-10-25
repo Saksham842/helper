@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Parakeet AI - Real-Time AI Interview & Call Copilot',
+  title: 'GhostPilot - Real-Time AI Interview & Call Copilot',
   description: 'Instant answers, real-time speech transcription, and coding solutions during live technical interviews.',
 };
 

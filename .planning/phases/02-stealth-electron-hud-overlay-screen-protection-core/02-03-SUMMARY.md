@@ -16,7 +16,7 @@
   7. `desktopCapturer.getSources({ types: ['screen'] })` querying while protected.
 
 ## Verification
-- Executed `pnpm --filter @parakeet/desktop test` (`electron tests/stealth-verification.cjs`):
+- Executed `pnpm --filter @ghostpilot/desktop test` (`electron tests/stealth-verification.cjs`):
   ```
   [Test Harness] Running Electron Stealth Overlay Verification...
   ✓ Window created with frameless transparent options

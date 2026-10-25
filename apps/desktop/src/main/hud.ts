@@ -1,6 +1,6 @@
 import { app, BrowserWindow, screen, ipcMain, desktopCapturer } from 'electron';
 import path from 'node:path';
-import type { HUDState } from '@parakeet/shared';
+import type { HUDState } from '@ghostpilot/shared';
 
 export class HUDWindowManager {
   private window: BrowserWindow | null = null;

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import Groq from 'groq-sdk';
 
 interface MockRespondPayload {
   track: string;
@@ -13,7 +14,7 @@ export async function POST(req: NextRequest) {
     const body: MockRespondPayload = await req.json();
     const { track, role, difficulty, history, resumeText } = body;
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
 
     if (!apiKey) {
       // Deterministic realistic simulated technical interviewer responses
@@ -57,41 +58,50 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Call Anthropic Claude 3.5 if key is provided
-    const prompt = `You are an elite, realistic technical interviewer conducting a mock interview for a ${difficulty} ${role} in "${track}".
-${resumeText ? `Candidate Resume Highlights:\n${resumeText.slice(0, 3000)}\n` : ''}
+    // Call Groq Llama with primary model and fast fallback
+    const groq = new Groq({ apiKey });
 
-Recent conversation:
-${history.map((m) => `${m.speaker === 'interviewer' ? 'Interviewer' : 'Candidate'}: ${m.text}`).join('\n')}
+    const systemPrompt = `You are an elite, realistic technical interviewer conducting a mock interview for a ${difficulty} ${role} in "${track}".${
+      resumeText ? `\nCandidate Resume Highlights:\n${resumeText.slice(0, 3000)}` : ''
+    }
 
 Based on the candidate's last answer, formulate your next logical follow-up question or probe.
 Keep it natural, professional, and concise (1-2 sentences maximum) so it sounds like spoken dialogue.
 Do NOT include pleasantries or meta-commentary. Output ONLY the interviewer's spoken words.`;
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514',
-        max_tokens: 250,
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    });
+    const userContent = `Recent conversation:\n${history
+      .map((m) => `${m.speaker === 'interviewer' ? 'Interviewer' : 'Candidate'}: ${m.text}`)
+      .join('\n')}`;
 
-    if (!res.ok) {
-      throw new Error(`Anthropic API error: ${res.statusText}`);
+    let completion;
+    try {
+      completion = await groq.chat.completions.create({
+        model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+        max_tokens: 250,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userContent },
+        ],
+      });
+    } catch (primaryErr: any) {
+      console.warn('[Mock Respond] Primary model failed, trying fast fallback:', primaryErr?.message);
+      completion = await groq.chat.completions.create({
+        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+        max_tokens: 250,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userContent },
+        ],
+      });
     }
 
-    const data = await res.json();
-    const nextQuestion = data.content?.[0]?.text?.trim() || "Can you walk me through the trade-offs of that approach?";
+    const nextQuestion =
+      completion.choices?.[0]?.message?.content?.trim() ||
+      "Can you walk me through the trade-offs of that approach?";
 
     return NextResponse.json({
       nextQuestion,
-      evaluation: 'Live Claude 3.5 adaptive response generated.',
+      evaluation: 'Live Groq Llama adaptive response generated.',
     });
   } catch (err: any) {
     console.error('[Mock Respond Error]:', err);

@@ -2,7 +2,7 @@
 
 ## Context & User Decisions
 
-Phase 6 is the final milestone, hardening a fully operational Parakeet AI platform (Phases 1–5 complete, 15/15 plans verified) into a production-ready, distributable, and documented release.
+Phase 6 is the final milestone, hardening a fully operational GhostPilot platform (Phases 1–5 complete, 15/15 plans verified) into a production-ready, distributable, and documented release.
 
 ---
 
@@ -25,7 +25,7 @@ Electron fuse hardening (`RunAsNode=off`, `EnableNodeCliInspectArguments=off`, `
 
 **Decision: Extend existing stack — add Vitest for `apps/web`, keep CJS for `apps/desktop`.**
 
-- **`apps/desktop` (CJS, already passing)**: Retain all 5 existing `.test.cjs` files. Run `pnpm --filter @parakeet/desktop test` to validate.
+- **`apps/desktop` (CJS, already passing)**: Retain all 5 existing `.test.cjs` files. Run `pnpm --filter @ghostpilot/desktop test` to validate.
   - `stealth-verification.cjs` — Electron stealth API checks (7 assertions)
   - `pcm-multiplexer.test.cjs` — Dual-channel PCM interleaving and VU meter math
   - `local-whisper-stt.test.cjs` — VAD chunking, channel diarization, TranscriptMessage format, zero-API-key guarantee
@@ -55,7 +55,7 @@ Electron fuse hardening (`RunAsNode=off`, `EnableNodeCliInspectArguments=off`, `
 **Executable / Process Name**: `SystemAudioHelper`
 - Windows: `SystemAudioHelper.exe` (NSIS installer, `SystemAudioHelper Setup 1.0.0.exe`)
 - macOS: `SystemAudioHelper.dmg` (signed/unsigned DMG)
-- App name displayed in UI: `Parakeet AI` (unchanged)
+- App name displayed in UI: `GhostPilot` (unchanged)
 - Bundle ID: `com.systemaudiosync.helper`
 
 **electron-builder configuration**: `apps/desktop/electron-builder.yml`
@@ -101,7 +101,7 @@ Contents:
 4. **Quick start** — `git clone`, `pnpm install`, env setup, `pnpm dev`
 5. **Local dev commands** — per-app commands and turbo commands
 6. **First-run Whisper model note** — On first audio capture, `onnx-community/whisper-base.en` (~40MB) downloads from HuggingFace; cached in Electron app data forever after
-7. **Desktop overlay launch steps** — `pnpm --filter @parakeet/desktop dev`, hotkeys reference
+7. **Desktop overlay launch steps** — `pnpm --filter @ghostpilot/desktop dev`, hotkeys reference
 8. **Vercel deploy button**
 9. **Environment variables table** — all required + optional vars
 10. **Test commands** — how to run CJS, Vitest, and Playwright

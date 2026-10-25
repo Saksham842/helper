@@ -9,7 +9,7 @@ Executed and verified automated testing across the entire monorepo: all 5 deskto
 ## Key Verification Results
 
 ### 1. Desktop CJS Test Suite (`apps/desktop`)
-Ran `pnpm --filter @parakeet/desktop test`:
+Ran `pnpm --filter @ghostpilot/desktop test`:
 - **`stealth-verification.cjs`**: 7/7 checks passed (frameless window, `showInactive()` anti-blur, `isAlwaysOnTop` screen-saver, `setContentProtection(true)` WDA_EXCLUDEFROMCAPTURE active, `desktopCapturer` query verified).
 - **`pcm-multiplexer.test.cjs`**: 3/3 checks passed (Linear16 PCM stereo interleaving, signal clamping, VU meter RMS calculation).
 - **`local-whisper-stt.test.cjs`**: 5/5 checks passed (VAD silence threshold, speech detection, stereo PCM channel diarization, TranscriptMessage format, 100% free local offline guarantee).
@@ -18,7 +18,7 @@ Ran `pnpm --filter @parakeet/desktop test`:
 - **Total:** 21/21 assertions passed.
 
 ### 2. Web Vitest Unit Test Suite (`apps/web`)
-Ran `pnpm --filter @parakeet/web test:unit`:
+Ran `pnpm --filter @ghostpilot/web test:unit`:
 - **`src/lib/extractor.test.ts`** (11 tests): Text normalization (null-byte stripping, whitespace collapsing, CRLF normalization, section header preservation), DOCX extraction via mammoth mock, and PDF parsing error handling.
 - **`src/app/api/mock/respond/respond.test.ts`** (7 tests): Zero-API-key fallback simulation, track question sequencing, and question limit safety.
 - **`src/app/api/mock/evaluate/evaluate.test.ts`** (4 tests): Rubric calculation math, answer depth score adjustments, communication score boost, and boundary clamping [68, 96].

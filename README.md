@@ -1,8 +1,8 @@
-# Parakeet AI — Real-Time Stealth AI Interview Copilot
+# GhostPilot — Real-Time Stealth AI Interview Copilot
 
 ![Node](https://img.shields.io/badge/Node-20%2B-339933?logo=node.js) ![pnpm](https://img.shields.io/badge/pnpm-9%2B-F69220?logo=pnpm) ![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js) ![Electron](https://img.shields.io/badge/Electron-33-47848F?logo=electron) ![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript) ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?logo=supabase)
 
-**Parakeet AI** is a production-grade, real-time AI Interview & Call Copilot. It delivers sub-second answers, live speech transcription, and silent coding problem solutions during technical interviews — while remaining completely invisible to screen shares (Zoom, Google Meet, Teams).
+**GhostPilot** is a production-grade, real-time AI Interview & Call Copilot. It delivers sub-second answers, live speech transcription, and silent coding problem solutions during technical interviews — while remaining completely invisible to screen shares (Zoom, Google Meet, Teams).
 
 - **100% Free & Unlimited** — No paid API for audio (local offline Whisper STT) or billing paywalls.
 - **Stealth-first** — The Electron HUD is invisible to screen capture using `setContentProtection(true)` (Win32 `WDA_EXCLUDEFROMCAPTURE` / macOS `NSWindowSharingNone`).
@@ -45,8 +45,8 @@ graph LR
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-org/parakeet-ai.git
-cd parakeet-ai
+git clone https://github.com/your-org/ghostpilot.git
+cd ghostpilot
 
 # 2. Install all dependencies (monorepo)
 pnpm install
@@ -79,18 +79,18 @@ pnpm turbo lint        # Lint all packages
 ### Web Platform (`apps/web`)
 
 ```bash
-pnpm --filter @parakeet/web dev        # Next.js dev server (port 3000)
-pnpm --filter @parakeet/web build      # Production build
-pnpm --filter @parakeet/web test:unit  # Vitest unit tests
-pnpm --filter @parakeet/web test:e2e   # Playwright E2E tests
+pnpm --filter @ghostpilot/web dev        # Next.js dev server (port 3000)
+pnpm --filter @ghostpilot/web build      # Production build
+pnpm --filter @ghostpilot/web test:unit  # Vitest unit tests
+pnpm --filter @ghostpilot/web test:e2e   # Playwright E2E tests
 ```
 
 ### Desktop HUD (`apps/desktop`)
 
 ```bash
-pnpm --filter @parakeet/desktop dev    # Electron + Vite HMR dev mode
-pnpm --filter @parakeet/desktop build  # Production Vite build
-pnpm --filter @parakeet/desktop test   # All CJS test suites
+pnpm --filter @ghostpilot/desktop dev    # Electron + Vite HMR dev mode
+pnpm --filter @ghostpilot/desktop build  # Production Vite build
+pnpm --filter @ghostpilot/desktop test   # All CJS test suites
 ```
 
 ---
@@ -144,7 +144,7 @@ You will see a loading indicator in the HUD ("Loading Whisper model...") during 
 
 ```bash
 # Desktop test suite (Electron + Node CJS)
-pnpm --filter @parakeet/desktop test
+pnpm --filter @ghostpilot/desktop test
 # ✓ stealth-verification.cjs     — 7 stealth API assertions
 # ✓ pcm-multiplexer.test.cjs     — Dual-channel PCM interleaving
 # ✓ local-whisper-stt.test.cjs   — VAD + diarization + zero-API-key
@@ -152,13 +152,13 @@ pnpm --filter @parakeet/desktop test
 # ✓ vision-capture.test.cjs      — Screenshot sanitization & Vision payload
 
 # Web unit tests (Vitest)
-pnpm --filter @parakeet/web test:unit
+pnpm --filter @ghostpilot/web test:unit
 # ✓ extractor.test.ts             — Text normalization & extraction
 # ✓ respond.test.ts               — Simulated response selection logic
 # ✓ upload-validation.test.ts     — File size & MIME type validation
 
 # Web E2E tests (Playwright)
-pnpm --filter @parakeet/web test:e2e
+pnpm --filter @ghostpilot/web test:e2e
 # ✓ Homepage branding & CTA buttons
 # ✓ Login page authentication controls
 # ✓ Unauthenticated /dashboard redirect
@@ -171,15 +171,15 @@ pnpm --filter @parakeet/web test:e2e
 
 ```bash
 # Windows NSIS installer (.exe)
-pnpm --filter @parakeet/desktop dist:win
+pnpm --filter @ghostpilot/desktop dist:win
 # Output: apps/desktop/release/SystemAudioHelper Setup 1.0.0.exe
 
 # macOS DMG (requires macOS host for signing)
-pnpm --filter @parakeet/desktop dist:mac
+pnpm --filter @ghostpilot/desktop dist:mac
 # Output: apps/desktop/release/SystemAudioHelper-1.0.0-x64.dmg
 
 # Both platforms (cross-compile where possible)
-pnpm --filter @parakeet/desktop dist
+pnpm --filter @ghostpilot/desktop dist
 ```
 
 The packaged binary will be named **`SystemAudioHelper`** — a neutral process name that doesn't reveal its purpose in Windows Task Manager or macOS Activity Monitor.
@@ -193,7 +193,7 @@ The packaged binary will be named **`SystemAudioHelper`** — a neutral process 
 
 ## Deploy to Vercel
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-org/parakeet-ai&root-directory=apps/web&env=NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,ANTHROPIC_API_KEY&envDescription=Supabase%20and%20Anthropic%20API%20keys&project-name=parakeet-ai)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-org/ghostpilot&root-directory=apps/web&env=NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,ANTHROPIC_API_KEY&envDescription=Supabase%20and%20Anthropic%20API%20keys&project-name=ghostpilot)
 
 Manual deployment:
 ```bash
@@ -211,7 +211,7 @@ Set these environment variables in your Vercel project dashboard:
 ## Project Structure
 
 ```
-parakeet-ai/
+ghostpilot/
 ├── apps/
 │   ├── web/                    # Next.js 15 web dashboard
 │   │   ├── src/app/
@@ -233,4 +233,4 @@ parakeet-ai/
 
 ## License
 
-MIT © 2024 Parakeet AI Contributors
+MIT © 2024 GhostPilot Contributors

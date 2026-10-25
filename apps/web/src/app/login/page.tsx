@@ -41,7 +41,7 @@ export default function LoginPage() {
             <Sparkles className="h-6 w-6 text-white" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white">
-            {mode === 'signin' ? 'Welcome Back' : 'Create Parakeet Account'}
+            {mode === 'signin' ? 'Welcome Back' : 'Create GhostPilot Account'}
           </h1>
           <p className="mt-1.5 text-sm text-zinc-400">
             {mode === 'signin'

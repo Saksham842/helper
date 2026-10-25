@@ -29,4 +29,4 @@ requirements:
 
 - `apps/desktop` built successfully with Vite and Electron compiling `dist/index.html`, `dist-electron/main/index.js`, and `dist-electron/preload/index.js`.
 - `turbo run build` passed across all workspace packages with 0 errors.
-- `turbo run typecheck` passed across `@parakeet/shared`, `@parakeet/desktop`, and `@parakeet/web`.
+- `turbo run typecheck` passed across `@ghostpilot/shared`, `@ghostpilot/desktop`, and `@ghostpilot/web`.

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import Groq from 'groq-sdk';
 
 interface MockEvaluatePayload {
   track: string;
@@ -78,6 +79,61 @@ export async function POST(req: NextRequest) {
       ],
       verbatimHistory: history,
     };
+
+    // If Groq API key is present, generate enriched dynamic evaluation
+    const apiKey = process.env.GROQ_API_KEY;
+    if (apiKey && candidateAnswers.length > 0) {
+      try {
+        const groq = new Groq({ apiKey });
+        const evalPrompt = `You are an expert technical interviewer evaluating a mock interview for a ${difficulty} ${role} in "${track}".
+Transcript:
+${history.map((m) => `${m.speaker === 'interviewer' ? 'Interviewer' : 'Candidate'}: ${m.text}`).join('\n')}
+
+Provide a JSON object with:
+{
+  "summary": "2-3 sentence overall evaluation summary",
+  "strengths": ["strength 1", "strength 2", "strength 3"],
+  "areasForImprovement": ["improvement 1", "improvement 2", "improvement 3"],
+  "actionItems": ["action item 1", "action item 2", "action item 3"]
+}
+Output only valid JSON.`;
+
+        let evalCompletion;
+        try {
+          evalCompletion = await groq.chat.completions.create({
+            model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+            messages: [
+              { role: 'system', content: 'You are an expert technical interviewer. Output valid JSON only.' },
+              { role: 'user', content: evalPrompt },
+            ],
+            response_format: { type: 'json_object' },
+          });
+        } catch {
+          evalCompletion = await groq.chat.completions.create({
+            model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+            messages: [
+              { role: 'system', content: 'You are an expert technical interviewer. Output valid JSON only.' },
+              { role: 'user', content: evalPrompt },
+            ],
+            response_format: { type: 'json_object' },
+          });
+        }
+
+        const parsedContent = JSON.parse(evalCompletion.choices[0]?.message?.content || '{}');
+        if (parsedContent.summary) evaluationResult.summary = parsedContent.summary;
+        if (Array.isArray(parsedContent.strengths) && parsedContent.strengths.length) {
+          evaluationResult.strengths = parsedContent.strengths;
+        }
+        if (Array.isArray(parsedContent.areasForImprovement) && parsedContent.areasForImprovement.length) {
+          evaluationResult.areasForImprovement = parsedContent.areasForImprovement;
+        }
+        if (Array.isArray(parsedContent.actionItems) && parsedContent.actionItems.length) {
+          evaluationResult.actionItems = parsedContent.actionItems;
+        }
+      } catch (llmErr) {
+        console.warn('[Mock Evaluate] LLM evaluation skipped or failed, using rubric heuristics:', llmErr);
+      }
+    }
 
     // Attempt to persist into sessions table in Supabase
     try {

@@ -1,5 +1,5 @@
 {
-  "name": "parakeet-ai-monorepo",
+  "name": "ghostpilot-monorepo",
   "version": "1.0.0",
   "private": true,
   "packageManager": "pnpm@9.12.3",

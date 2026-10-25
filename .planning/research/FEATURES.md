@@ -1,4 +1,4 @@
-# Features Research: Parakeet AI Platform
+# Features Research: GhostPilot Platform
 
 **Domain:** Real-Time AI Interview Assistant & Call Copilot
 **Researched:** 2026-10-24

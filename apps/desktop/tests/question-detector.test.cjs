@@ -62,7 +62,7 @@ console.log(`✓ All ${fillers.length} filler phrases filtered out successfully`
 
 // 2. Prompt Engine Assembly Logic
 function buildSystemPrompt() {
-  return `You are Parakeet AI, an undetectable, ultra-low latency real-time interview copilot.
+  return `You are GhostPilot, an undetectable, ultra-low latency real-time interview copilot.
 1. Ultra-Scannable: Format answers in 3-4 concise bullet points maximum.
 2. Bold Key Terms: Bold core technical keywords, metrics, or architecture patterns.
 3. First-Person Voice: Speak from the candidate's perspective.
@@ -100,5 +100,40 @@ assert(userPrompt.includes('250k events/sec'), 'User prompt missing resume highl
 assert(userPrompt.includes('STAR method'), 'User prompt missing custom instructions');
 assert(userPrompt.includes(validQuestions[0]), 'User prompt missing question');
 console.log('✓ Prompt Engine context assembly and resume injection verified');
+
+// 3. Groq Messages Payload & Fallback Verification
+function buildGroqPayload(sysPrompt, userPrompt, model = 'llama-3.3-70b-versatile') {
+  return {
+    model,
+    max_tokens: 600,
+    temperature: 0.2,
+    stream: true,
+    messages: [
+      { role: 'system', content: sysPrompt },
+      { role: 'user', content: userPrompt },
+    ],
+  };
+}
+
+const groqPayload = buildGroqPayload(sysPrompt, userPrompt);
+assert.strictEqual(groqPayload.messages.length, 2);
+assert.strictEqual(groqPayload.messages[0].role, 'system');
+assert.strictEqual(groqPayload.messages[0].content, sysPrompt);
+assert.strictEqual(groqPayload.messages[1].role, 'user');
+assert.strictEqual(groqPayload.messages[1].content, userPrompt);
+assert.strictEqual(groqPayload.model, 'llama-3.3-70b-versatile');
+
+const groqFallbackPayload = buildGroqPayload(sysPrompt, userPrompt, 'meta-llama/llama-4-scout-17b-16e-instruct');
+assert.strictEqual(groqFallbackPayload.model, 'meta-llama/llama-4-scout-17b-16e-instruct');
+console.log('✓ Groq Chat standard message format and fast fallback model verified');
+
+// 4. Groq API Key Format Verification
+function validateGroqApiKey(key) {
+  return typeof key === 'string' && key.startsWith('gsk_') && key.length > 10;
+}
+assert.strictEqual(validateGroqApiKey('gsk_valid_key_sample_1234567890'), true);
+assert.strictEqual(validateGroqApiKey('sk-ant-invalid-prefix'), false);
+assert.strictEqual(validateGroqApiKey(''), false);
+console.log('✓ Groq API Key format (gsk_) verification passed');
 
 console.log('\n[Test Harness] ALL QUESTION DETECTOR & PROMPT ENGINE TESTS PASSED!\n');

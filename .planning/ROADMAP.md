@@ -1,8 +1,8 @@
-# Roadmap: Parakeet AI Platform
+# Roadmap: GhostPilot Platform
 
 ## Overview
 
-A phased journey to build a complete, production-grade Parakeet AI clone in a Turborepo monorepo. The roadmap follows an end-to-end vertical MVP architecture starting with the monorepo foundation, Supabase database schema, web authentication, and desktop deep-linking protocol handoff, progressing through the native stealth Electron HUD, loopback audio pipeline with Deepgram Nova-2, Claude AI answer and vision problem solving, Razorpay billing, and production hardening with automated test suites.
+A phased journey to build a complete, production-grade GhostPilot clone in a Turborepo monorepo. The roadmap follows an end-to-end vertical MVP architecture starting with the monorepo foundation, Supabase database schema, web authentication, and desktop deep-linking protocol handoff, progressing through the native stealth Electron HUD, loopback audio pipeline with Deepgram Nova-2, Claude AI answer and vision problem solving, Razorpay billing, and production hardening with automated test suites.
 
 ## Phases
 

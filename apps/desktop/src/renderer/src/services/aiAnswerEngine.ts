@@ -17,7 +17,7 @@ export class AIAnswerEngine {
   private onErrorCallbacks: ErrorCallback[] = [];
 
   constructor() {
-    const saved = localStorage.getItem('parakeet_anthropic_api_key');
+    const saved = localStorage.getItem('ghostpilot_groq_api_key');
     if (saved) {
       this.apiKey = saved;
     }
@@ -25,7 +25,7 @@ export class AIAnswerEngine {
 
   public setApiKey(key: string): void {
     this.apiKey = key.trim();
-    localStorage.setItem('parakeet_anthropic_api_key', this.apiKey);
+    localStorage.setItem('ghostpilot_groq_api_key', this.apiKey);
   }
 
   public getApiKey(): string {
@@ -64,7 +64,7 @@ export class AIAnswerEngine {
   public async generateAnswer(question: string, history: TranscriptMessage[] = []): Promise<void> {
     if (!this.apiKey) {
       this.onErrorCallbacks.forEach((cb) =>
-        cb('Anthropic API Key is not set. Please provide your API key in the HUD settings drawer.')
+        cb('Groq API Key is not set. Please provide your API key (starts with gsk_) in the HUD settings drawer.')
       );
       return;
     }
@@ -81,28 +81,51 @@ export class AIAnswerEngine {
     const userPrompt = promptEngine.buildUserPrompt(question, history);
 
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      let response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'x-api-key': this.apiKey,
-          'anthropic-version': '2023-06-01',
-          'content-type': 'application/json',
-          'anthropic-dangerous-direct-browser-access': 'true',
+          Authorization: `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: (import.meta as any).env?.VITE_ANTHROPIC_MODEL || 'claude-sonnet-4-20250514',
+          model:
+            (import.meta as any).env?.VITE_GROQ_MODEL || 'llama-3.3-70b-versatile',
           max_tokens: 600,
           temperature: 0.2,
           stream: true,
-          system: systemPrompt,
-          messages: [{ role: 'user', content: userPrompt }],
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
         }),
         signal: this.currentAbortController.signal,
       });
 
       if (!response.ok) {
+        console.warn(`[AIAnswerEngine] Primary model failed (${response.status}), retrying with fast fallback...`);
+        response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+            max_tokens: 600,
+            temperature: 0.2,
+            stream: true,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { role: 'user', content: userPrompt },
+            ],
+          }),
+          signal: this.currentAbortController.signal,
+        });
+      }
+
+      if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Anthropic API Error (${response.status}): ${errorText}`);
+        throw new Error(`Groq API Error (${response.status}): ${errorText}`);
       }
 
       if (!response.body) {
@@ -129,12 +152,8 @@ export class AIAnswerEngine {
 
             try {
               const eventData = JSON.parse(dataStr);
-              if (
-                eventData.type === 'content_block_delta' &&
-                eventData.delta?.type === 'text_delta' &&
-                eventData.delta.text
-              ) {
-                const token = eventData.delta.text;
+              const token = eventData.choices?.[0]?.delta?.content;
+              if (token) {
                 this.currentAnswer += token;
                 this.onTokenCallbacks.forEach((cb) => cb(token, this.currentAnswer));
               }

@@ -1,5 +1,5 @@
 -- ==============================================================================
--- PARAKEET AI - CORE DATABASE SCHEMA & ROW LEVEL SECURITY (RLS) MIGRATION
+-- GHOSTPILOT - CORE DATABASE SCHEMA & ROW LEVEL SECURITY (RLS) MIGRATION
 -- Tables: profiles, sessions, documents, transcripts, ai_responses, credit_transactions
 -- ==============================================================================
 

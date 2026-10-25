@@ -1,5 +1,5 @@
 {
-  "name": "@parakeet/desktop",
+  "name": "@ghostpilot/desktop",
   "version": "1.0.0",
   "private": true,
   "main": "dist-electron/main/index.js",
@@ -15,8 +15,9 @@
     "test": "electron tests/stealth-verification.cjs && node tests/pcm-multiplexer.test.cjs && node tests/local-whisper-stt.test.cjs && node tests/question-detector.test.cjs && node tests/vision-capture.test.cjs"
   },
   "dependencies": {
+    "@ghostpilot/shared": "workspace:*",
     "@huggingface/transformers": "^4.3.1",
-    "@parakeet/shared": "workspace:*",
+    "groq-sdk": "^1.6.0",
     "lucide-react": "^0.460.0",
     "react": "^19.0.0-rc-66855b96-20241106",
     "react-dom": "^19.0.0-rc-66855b96-20241106"

@@ -1,8 +1,8 @@
-# Parakeet AI - Real-Time AI Interview & Call Copilot
+# GhostPilot - Real-Time AI Interview & Call Copilot
 
 ## What This Is
 
-Parakeet AI is a production-grade, real-time AI Interview & Call Copilot platform engineered to provide instant, sub-second answers, coding solutions, and speech transcription during live technical interviews and high-stakes calls. The system operates as a synchronized Turborepo monorepo comprising a Next.js 15 web platform (dashboard, resume vault, question bank, Razorpay credit billing) and an Electron desktop stealth HUD overlay that remains completely invisible to screen shares (Zoom, Google Meet, Teams), immune to browser tab-switch and blur detection, and captures loopback system audio without recording banners.
+GhostPilot is a production-grade, real-time AI Interview & Call Copilot platform engineered to provide instant, sub-second answers, coding solutions, and speech transcription during live technical interviews and high-stakes calls. The system operates as a synchronized Turborepo monorepo comprising a Next.js 15 web platform (dashboard, resume vault, question bank, Razorpay credit billing) and an Electron desktop stealth HUD overlay that remains completely invisible to screen shares (Zoom, Google Meet, Teams), immune to browser tab-switch and blur detection, and captures loopback system audio without recording banners.
 
 ## Core Value
 
@@ -13,7 +13,7 @@ Deliver an undetectable, sub-second latency real-time copilot HUD that captures 
 - **Customer**: Software engineering candidates, technical interviewees, sales executives, and corporate professionals navigating virtual interviews and critical client calls.
 - **Revenue model**: Credit-based usage and recurring subscription tiers billed through Razorpay for interview minutes, AI coding vision requests, and mock interview practice.
 - **Success metric**: Sub-800ms end-to-end question detection to answer streaming latency, 100% exclusion from OS screen-sharing APIs, zero focus loss / blur events on proctored coding assessment platforms.
-- **Strategy notes**: Parakeet AI desktop companion pairs with the web dashboard via seamless deep-link token handoff (`parakeet://auth?token=...`).
+- **Strategy notes**: GhostPilot desktop companion pairs with the web dashboard via seamless deep-link token handoff (`parakeet://auth?token=...`).
 
 ## Current State
 

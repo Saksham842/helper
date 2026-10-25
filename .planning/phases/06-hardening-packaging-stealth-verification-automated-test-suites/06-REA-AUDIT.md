@@ -13,8 +13,8 @@ Scanned all `.js` chunks in `apps/desktop/dist/assets/` for embedded secret key 
 | Pattern Checked | Found | Status |
 |-----------------|-------|--------|
 | `SUPABASE_SERVICE_ROLE_KEY` | ❌ None | ✅ PASS |
-| `ANTHROPIC_API_KEY` | ❌ None | ✅ PASS |
-| `sk-ant-` (Anthropic key prefix) | ❌ None | ✅ PASS |
+| `GROQ_API_KEY` | ❌ None | ✅ PASS |
+| `gsk_` (Groq key prefix) | ❌ None | ✅ PASS |
 | `service_role` (Supabase admin role) | ❌ None | ✅ PASS |
 | Raw JWT / 40+ char hex constants | ❌ None | ✅ PASS |
 

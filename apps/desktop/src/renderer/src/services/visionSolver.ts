@@ -48,10 +48,10 @@ export class VisionSolverService {
   }
 
   public async captureAndSolve(targetLanguage: string = 'Python'): Promise<void> {
-    const apiKey = localStorage.getItem('parakeet_anthropic_api_key');
+    const apiKey = localStorage.getItem('ghostpilot_groq_api_key');
     if (!apiKey) {
       this.onErrorCallbacks.forEach((cb) =>
-        cb('Anthropic API key required for Vision problem solver. Please add your key in HUD settings.')
+        cb('Groq API key required for Vision problem solver. Please add your key (starts with gsk_) in HUD settings.')
       );
       return;
     }
@@ -70,10 +70,10 @@ export class VisionSolverService {
       const dataUrl = await window.electronAPI.captureSilentScreenshot();
       const base64Data = dataUrl.replace(/^data:image\/\w+;base64,/, '');
 
-      // 2. Query Claude 3.5 Sonnet Vision with streaming
+      // 2. Query Groq Llama 4 Maverick Vision with streaming
       const systemPrompt = `You are a world-champion competitive programmer and technical interview expert.
 A coding problem (LeetCode, HackerRank, CoderPad, or system diagram) is displayed on screen.
-Your job is to provide an undetectable, executive-grade solution optimized for live interviews.
+Your job is to provide an undetectable, executive-grade solution optimized for live interviews with execution trace and complexity analysis.
 Format your response cleanly:
 ### Problem
 [Problem Name & 1-sentence summary]
@@ -90,39 +90,43 @@ Format your response cleanly:
 [Complete, production-ready, beautifully commented code]
 \`\`\`
 
+### Execution Logs & Trace
+- [Step-by-step dry run on sample inputs with variable states]
+
 ### Edge Cases
 - [Edge case 1]
 - [Edge case 2]`;
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      // Use Groq's multimodal vision model (llama-3.2-11b-vision-preview / llama-4-maverick)
+      const visionModel =
+        (import.meta as any).env?.VITE_GROQ_VISION_MODEL ||
+        'llama-3.2-11b-vision-preview';
+
+      let response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'content-type': 'application/json',
-          'anthropic-dangerous-direct-browser-access': 'true',
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: (import.meta as any).env?.VITE_ANTHROPIC_MODEL || 'claude-sonnet-4-20250514',
+          model: visionModel,
           max_tokens: 1500,
           temperature: 0.1,
           stream: true,
-          system: systemPrompt,
           messages: [
+            { role: 'system', content: systemPrompt },
             {
               role: 'user',
               content: [
                 {
-                  type: 'image',
-                  source: {
-                    type: 'base64',
-                    media_type: 'image/png',
-                    data: base64Data,
-                  },
-                },
-                {
                   type: 'text',
                   text: `Analyze the coding problem on my screen and provide the optimal solution in ${targetLanguage}.`,
+                },
+                {
+                  type: 'image_url',
+                  image_url: {
+                    url: `data:image/png;base64,${base64Data}`,
+                  },
                 },
               ],
             },
@@ -130,6 +134,42 @@ Format your response cleanly:
         }),
         signal: this.currentAbortController.signal,
       });
+
+      if (!response.ok) {
+        console.warn(`[VisionSolver] Primary model failed (${response.status}), retrying with fallback model...`);
+        response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'meta-llama/llama-4-maverick-17b-128e-instruct',
+            max_tokens: 1500,
+            temperature: 0.1,
+            stream: true,
+            messages: [
+              { role: 'system', content: systemPrompt },
+              {
+                role: 'user',
+                content: [
+                  {
+                    type: 'text',
+                    text: `Analyze the coding problem on my screen and provide the optimal solution in ${targetLanguage}.`,
+                  },
+                  {
+                    type: 'image_url',
+                    image_url: {
+                      url: `data:image/png;base64,${base64Data}`,
+                    },
+                  },
+                ],
+              },
+            ],
+          }),
+          signal: this.currentAbortController.signal,
+        });
+      }
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -161,12 +201,8 @@ Format your response cleanly:
 
             try {
               const eventData = JSON.parse(dataStr);
-              if (
-                eventData.type === 'content_block_delta' &&
-                eventData.delta?.type === 'text_delta' &&
-                eventData.delta.text
-              ) {
-                const token = eventData.delta.text;
+              const token = eventData.choices?.[0]?.delta?.content;
+              if (token) {
                 fullMarkdown += token;
                 this.onTokenCallbacks.forEach((cb) => cb(token, fullMarkdown));
               }

@@ -51,9 +51,9 @@ export default function VaultPage() {
 
   useEffect(() => {
     // Load local stored directives if available
-    const savedRole = localStorage.getItem('parakeet_target_role');
-    const savedCompany = localStorage.getItem('parakeet_target_company');
-    const savedInstructions = localStorage.getItem('parakeet_custom_instructions');
+    const savedRole = localStorage.getItem('ghostpilot_target_role');
+    const savedCompany = localStorage.getItem('ghostpilot_target_company');
+    const savedInstructions = localStorage.getItem('ghostpilot_custom_instructions');
 
     if (savedRole) setTargetRole(savedRole);
     if (savedCompany) setTargetCompany(savedCompany);
@@ -168,9 +168,9 @@ export default function VaultPage() {
 
   const handleSaveDirectives = (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem('parakeet_target_role', targetRole);
-    localStorage.setItem('parakeet_target_company', targetCompany);
-    localStorage.setItem('parakeet_custom_instructions', customInstructions);
+    localStorage.setItem('ghostpilot_target_role', targetRole);
+    localStorage.setItem('ghostpilot_target_company', targetCompany);
+    localStorage.setItem('ghostpilot_custom_instructions', customInstructions);
     setSavedSettings(true);
     setTimeout(() => setSavedSettings(false), 2500);
   };

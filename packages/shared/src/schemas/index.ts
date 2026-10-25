@@ -81,9 +81,12 @@ export const webEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, 'Supabase anon key is required'),
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
   NEXT_PUBLIC_APP_URL: z.string().url().optional().default('http://localhost:3000'),
+  GROQ_API_KEY: z.string().regex(/^gsk_/, 'GROQ_API_KEY must start with gsk_').optional(),
 });
 
 export const desktopEnvSchema = z.object({
   VITE_SUPABASE_URL: z.string().url().optional(),
   VITE_SUPABASE_ANON_KEY: z.string().optional(),
+  VITE_GROQ_API_KEY: z.string().regex(/^gsk_/, 'VITE_GROQ_API_KEY must start with gsk_').optional(),
 });
+

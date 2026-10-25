@@ -11,7 +11,7 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const email = user?.email || 'candidate@parakeet-ai.com';
+  const email = user?.email || 'candidate@ghostpilot.app';
 
   return (
     <div className="min-h-screen bg-[#090a0f] text-[#f4f4f5]">
@@ -22,7 +22,7 @@ export default async function DashboardPage() {
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 shadow-md">
               <Sparkles className="h-5 w-5 text-white" />
             </div>
-            <span className="text-lg font-bold tracking-tight text-white">Parakeet AI</span>
+            <span className="text-lg font-bold tracking-tight text-white">GhostPilot</span>
           </div>
 
           <nav className="hidden md:flex items-center gap-1 text-xs font-semibold text-zinc-400 ml-4">

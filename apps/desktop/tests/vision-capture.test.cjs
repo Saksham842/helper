@@ -1,6 +1,6 @@
 const assert = require('node:assert');
 
-console.log('[Test Harness] Running Silent Vision Solver & Screenshot Parser Verification...');
+console.log('[Test Harness] Running Silent Vision Solver & Screenshot Parser Verification (Groq)...');
 
 // 1. Test Base64 Data URL Sanitizer
 function sanitizeDataUrl(dataUrl) {
@@ -31,7 +31,7 @@ function parseSolution(markdown) {
   };
 }
 
-const mockClaudeVisionOutput = `### Problem
+const mockGroqVisionOutput = `### Problem
 **Two Sum (LeetCode #1)**: Given an array of integers \`nums\` and an integer \`target\`, return indices of the two numbers such that they add up to target.
 
 ### Complexity
@@ -57,34 +57,40 @@ def twoSum(nums: list[int], target: int) -> list[int]:
 - No two numbers sum to target (return empty list)
 - Duplicate values adding up to target`;
 
-const parsed = parseSolution(mockClaudeVisionOutput);
+const parsed = parseSolution(mockGroqVisionOutput);
 
 assert.strictEqual(parsed.timeComplexity, 'O(N)', 'Failed to parse Time Complexity');
 assert.strictEqual(parsed.spaceComplexity, 'O(N)', 'Failed to parse Space Complexity');
 assert(parsed.code.includes('seen = {}'), 'Failed to extract clean Python code block');
 assert(parsed.code.includes('return [seen[complement], i]'), 'Failed to extract solution body');
-console.log('✓ Claude 3.5 Vision solution parser and code extractor verified');
+console.log('✓ Groq Vision solution parser and code extractor verified');
 
-// 3. Test Anthropic Vision Payload Construction
-function constructVisionPayload(apiKey, base64Image, language) {
+// 3. Test Groq Llama 4 Multimodal Vision Payload Construction
+function constructGroqVisionPayload(apiKey, base64Image, language, systemPrompt = 'You are GhostPilot.', model = 'llama-3.2-11b-vision-preview') {
+  const prompt = `Analyze the coding problem on my screen and provide the optimal solution in ${language}.`;
+
   return {
-    model: 'claude-3-5-sonnet-20241022',
+    model,
     max_tokens: 1500,
+    temperature: 0.1,
+    stream: true,
     messages: [
+      {
+        role: 'system',
+        content: systemPrompt,
+      },
       {
         role: 'user',
         content: [
           {
-            type: 'image',
-            source: {
-              type: 'base64',
-              media_type: 'image/png',
-              data: base64Image,
-            },
+            type: 'text',
+            text: prompt,
           },
           {
-            type: 'text',
-            text: `Analyze the coding problem on my screen and provide the optimal solution in ${language}.`,
+            type: 'image_url',
+            image_url: {
+              url: `data:image/png;base64,${base64Image}`,
+            },
           },
         ],
       },
@@ -92,11 +98,20 @@ function constructVisionPayload(apiKey, base64Image, language) {
   };
 }
 
-const payload = constructVisionPayload('test-key', cleaned, 'Python');
-assert.strictEqual(payload.model, 'claude-3-5-sonnet-20241022');
-assert.strictEqual(payload.messages[0].content[0].type, 'image');
-assert.strictEqual(payload.messages[0].content[0].source.data, cleaned);
-assert.strictEqual(payload.messages[0].content[1].text.includes('Python'), true);
-console.log('✓ Anthropic Vision messages payload specification verified');
+const payload = constructGroqVisionPayload('gsk_test_key_12345', cleaned, 'Python');
+assert.strictEqual(payload.model, 'llama-3.2-11b-vision-preview');
+assert.strictEqual(payload.messages[0].role, 'system');
+assert.strictEqual(payload.messages[1].role, 'user');
+assert.strictEqual(payload.messages[1].content[0].type, 'text');
+assert.strictEqual(payload.messages[1].content[0].text.includes('Python'), true);
+assert.strictEqual(payload.messages[1].content[1].type, 'image_url');
+assert.strictEqual(
+  payload.messages[1].content[1].image_url.url,
+  `data:image/png;base64,${cleaned}`
+);
+
+const fallbackPayload = constructGroqVisionPayload('gsk_test_key_12345', cleaned, 'Python', undefined, 'meta-llama/llama-4-maverick-17b-128e-instruct');
+assert.strictEqual(fallbackPayload.model, 'meta-llama/llama-4-maverick-17b-128e-instruct');
+console.log('✓ Groq Vision (llama-3.2-11b-vision-preview & llama-4-maverick) payload specification verified');
 
 console.log('\n[Test Harness] ALL SILENT VISION SOLVER TESTS PASSED!\n');

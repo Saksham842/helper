@@ -1,4 +1,4 @@
-# Pitfalls Research: Parakeet AI Platform
+# Pitfalls Research: GhostPilot Platform
 
 **Domain:** Real-Time AI Copilot, Native Stealth HUD & Audio Processing
 **Researched:** 2026-10-24

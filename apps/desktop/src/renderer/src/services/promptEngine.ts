@@ -24,7 +24,7 @@ export class PromptEngine {
   }
 
   public buildSystemPrompt(): string {
-    return `You are Parakeet AI, an undetectable, ultra-low latency real-time interview copilot.
+    return `You are GhostPilot, an undetectable, ultra-low latency real-time interview copilot.
 The candidate is actively speaking to an interviewer on a live call.
 Your output will be rendered on a stealth HUD that the candidate glances at while speaking.
 

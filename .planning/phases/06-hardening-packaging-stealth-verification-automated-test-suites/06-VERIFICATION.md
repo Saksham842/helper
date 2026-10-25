@@ -24,8 +24,8 @@ Harden the platform with strict type checking, automated tests, anti-detection v
    - macOS entitlements configured in `build/entitlements.mac.plist` with microphone and WASM JIT permissions.
 
 2. **Automated Unit & Integration Test Suites:**
-   - `pnpm --filter @parakeet/desktop test`: 5/5 suites, 21/21 assertions passed.
-   - `pnpm --filter @parakeet/web test:unit`: 4/4 suites, 33/33 tests passed.
+   - `pnpm --filter @ghostpilot/desktop test`: 5/5 suites, 21/21 assertions passed.
+   - `pnpm --filter @ghostpilot/web test:unit`: 4/4 suites, 33/33 tests passed.
    - `pnpm turbo typecheck`: 3/3 packages clean (0 errors).
    - `pnpm turbo lint`: 2/2 packages clean (0 errors).
 

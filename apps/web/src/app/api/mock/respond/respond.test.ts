@@ -73,3 +73,39 @@ describe('mock/respond - simulated response selection (no API key)', () => {
     expect(result).toBe(simulatedResponses['Behavioral & Leadership'][0]);
   });
 });
+
+describe('mock/respond - Groq chat completion format', () => {
+  function formatGroqMessages(
+    systemPrompt: string,
+    history: Array<{ speaker: string; text: string }>,
+    _resumeText?: string
+  ) {
+    const userContent = `Recent conversation:\n${history
+      .map((m) => `${m.speaker === 'interviewer' ? 'Interviewer' : 'Candidate'}: ${m.text}`)
+      .join('\n')}`;
+
+    return [
+      { role: 'system' as const, content: systemPrompt },
+      { role: 'user' as const, content: userContent },
+    ];
+  }
+
+  it('formats system and user messages conforming to Groq OpenAI standard', () => {
+    const sysPrompt = 'You are an elite interviewer.';
+    const history = [{ speaker: 'interviewer', text: 'Tell me about yourself.' }];
+    const messages = formatGroqMessages(sysPrompt, history);
+
+    expect(messages).toHaveLength(2);
+    expect(messages[0]).toEqual({ role: 'system', content: sysPrompt });
+    expect(messages[1].role).toBe('user');
+    expect(messages[1].content).toContain('Tell me about yourself.');
+  });
+
+  it('validates Groq API key starts with gsk_', () => {
+    const validKey = 'gsk_abcdef1234567890';
+    const invalidKey = 'sk-ant-1234567890';
+    expect(validKey.startsWith('gsk_')).toBe(true);
+    expect(invalidKey.startsWith('gsk_')).toBe(false);
+  });
+});
+

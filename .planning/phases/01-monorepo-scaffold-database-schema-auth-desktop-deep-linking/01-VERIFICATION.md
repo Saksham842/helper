@@ -13,7 +13,7 @@ requirements:
 
 ## Executive Summary
 
-Phase 1 has delivered the foundational full-stack architecture for Parakeet AI. All 3 plans (01-01, 01-02, 01-03) have been executed, and all 5 success criteria have been verified with automated builds, type-checking, and schema reviews.
+Phase 1 has delivered the foundational full-stack architecture for GhostPilot. All 3 plans (01-01, 01-02, 01-03) have been executed, and all 5 success criteria have been verified with automated builds, type-checking, and schema reviews.
 
 ## Goal & Success Criteria Verification
 

@@ -10,7 +10,7 @@ export default function HomePage() {
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 shadow-lg shadow-emerald-500/20">
             <Sparkles className="h-5 w-5 text-white" />
           </div>
-          <span className="text-xl font-bold tracking-tight text-white">Parakeet AI</span>
+          <span className="text-xl font-bold tracking-tight text-white">GhostPilot</span>
         </div>
         <div className="flex items-center gap-4">
           <Link

@@ -16,5 +16,5 @@
 
 ## Verification
 - Turbo typecheck passed across all packages with zero errors.
-- Turbo build cleanly bundled both `@parakeet/desktop` and `@parakeet/web`.
+- Turbo build cleanly bundled both `@ghostpilot/desktop` and `@ghostpilot/web`.
 - Full test suite passed (7 stealth checks + 3 PCM multiplexer checks).
