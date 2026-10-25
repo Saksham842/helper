@@ -102,7 +102,7 @@ assert(userPrompt.includes(validQuestions[0]), 'User prompt missing question');
 console.log('✓ Prompt Engine context assembly and resume injection verified');
 
 // 3. Groq Messages Payload & Fallback Verification
-function buildGroqPayload(sysPrompt, userPrompt, model = 'llama-3.3-70b-versatile') {
+function buildGroqPayload(sysPrompt, userPrompt, model = 'openai/gpt-oss-120b') {
   return {
     model,
     max_tokens: 600,
@@ -121,10 +121,10 @@ assert.strictEqual(groqPayload.messages[0].role, 'system');
 assert.strictEqual(groqPayload.messages[0].content, sysPrompt);
 assert.strictEqual(groqPayload.messages[1].role, 'user');
 assert.strictEqual(groqPayload.messages[1].content, userPrompt);
-assert.strictEqual(groqPayload.model, 'llama-3.3-70b-versatile');
+assert.strictEqual(groqPayload.model, 'openai/gpt-oss-120b');
 
-const groqFallbackPayload = buildGroqPayload(sysPrompt, userPrompt, 'meta-llama/llama-4-scout-17b-16e-instruct');
-assert.strictEqual(groqFallbackPayload.model, 'meta-llama/llama-4-scout-17b-16e-instruct');
+const groqFallbackPayload = buildGroqPayload(sysPrompt, userPrompt, 'openai/gpt-oss-20b');
+assert.strictEqual(groqFallbackPayload.model, 'openai/gpt-oss-20b');
 console.log('✓ Groq Chat standard message format and fast fallback model verified');
 
 // 4. Groq API Key Format Verification

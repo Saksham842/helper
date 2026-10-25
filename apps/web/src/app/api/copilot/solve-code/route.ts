@@ -41,7 +41,7 @@ Format your response cleanly:
     let stream;
     try {
       stream = await groq.chat.completions.create({
-        model: process.env.GROQ_VISION_MODEL || 'llama-3.2-11b-vision-preview',
+        model: process.env.GROQ_VISION_MODEL || 'qwen/qwen3.8-27b',
         messages: [
           { role: 'system', content: systemPrompt },
           {
@@ -62,7 +62,7 @@ Format your response cleanly:
     } catch (primaryErr) {
       console.warn('[Copilot Solve Code] Primary vision model failed, trying fallback:', primaryErr);
       stream = await groq.chat.completions.create({
-        model: 'meta-llama/llama-4-maverick-17b-128e-instruct',
+        model: 'qwen/qwen3.8-27b',
         messages: [
           { role: 'system', content: systemPrompt },
           {

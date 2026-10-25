@@ -98,10 +98,10 @@ Format your response cleanly:
 - [Edge case 1]
 - [Edge case 2]`;
 
-      // Use Groq's multimodal vision model (llama-3.2-11b-vision-preview / llama-4-maverick)
+      // Use Groq's multimodal vision model (qwen/qwen3.8-27b)
       const visionModel =
         (import.meta as any).env?.VITE_GROQ_VISION_MODEL ||
-        'llama-3.2-11b-vision-preview';
+        'qwen/qwen3.8-27b';
 
       let response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
@@ -145,7 +145,7 @@ Format your response cleanly:
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'meta-llama/llama-4-maverick-17b-128e-instruct',
+            model: 'qwen/qwen3.8-27b',
             max_tokens: 1500,
             temperature: 0.1,
             stream: true,

@@ -85,6 +85,14 @@ export class LocalWhisperClient {
   public async initialize(): Promise<void> {
     if (this.transcriber || this.isInitializing) return;
 
+    const envKey = (import.meta as any).env?.VITE_GROQ_API_KEY || '';
+    const groqApiKey = localStorage.getItem('ghostpilot_groq_api_key') || envKey;
+
+    if (groqApiKey) {
+      this.updateStatus('ready', 'Groq Whisper Cloud STT Ready (<200ms)');
+      return;
+    }
+
     this.isInitializing = true;
     this.updateStatus('loading', 'Loading local Whisper neural model (offline ready)...');
 
@@ -168,7 +176,8 @@ export class LocalWhisperClient {
 
       try {
         let text = '';
-        const groqApiKey = localStorage.getItem('ghostpilot_groq_api_key');
+        const envKey = (import.meta as any).env?.VITE_GROQ_API_KEY || '';
+        const groqApiKey = localStorage.getItem('ghostpilot_groq_api_key') || envKey;
 
         // 1. Primary: Groq ultra-low latency (<200ms) whisper-large-v3-turbo (0% local CPU)
         if (groqApiKey) {

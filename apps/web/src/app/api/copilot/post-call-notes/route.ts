@@ -25,7 +25,7 @@ ${transcript.map((t: any) => `${t.speaker}: ${t.text}`).join('\n')}`;
     let completion;
     try {
       completion = await groq.chat.completions.create({
-        model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+        model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
@@ -34,7 +34,7 @@ ${transcript.map((t: any) => `${t.speaker}: ${t.text}`).join('\n')}`;
       });
     } catch {
       completion = await groq.chat.completions.create({
-        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+        model: 'openai/gpt-oss-20b',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },

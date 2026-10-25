@@ -76,7 +76,7 @@ Do NOT include pleasantries or meta-commentary. Output ONLY the interviewer's sp
     let completion;
     try {
       completion = await groq.chat.completions.create({
-        model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+        model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
         max_tokens: 250,
         messages: [
           { role: 'system', content: systemPrompt },
@@ -86,7 +86,7 @@ Do NOT include pleasantries or meta-commentary. Output ONLY the interviewer's sp
     } catch (primaryErr: any) {
       console.warn('[Mock Respond] Primary model failed, trying fast fallback:', primaryErr?.message);
       completion = await groq.chat.completions.create({
-        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+        model: 'openai/gpt-oss-20b',
         max_tokens: 250,
         messages: [
           { role: 'system', content: systemPrompt },

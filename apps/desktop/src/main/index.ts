@@ -37,7 +37,11 @@ if (!gotTheLock) {
     const url = commandLine.find((arg) => arg.startsWith('copilot://'));
     if (url && hudManager) {
       logInfo('[Main] Forwarding deep link URL from second-instance:', url);
-      handleDeepLinkUrl(url, hudManager.getWindow());
+      let win = hudManager.getWindow();
+      if (!win) {
+        win = hudManager.createWindow();
+      }
+      handleDeepLinkUrl(url, win);
     }
   });
 

@@ -18,6 +18,9 @@ export class HUDWindowManager {
   }
 
   public getWindow(): BrowserWindow | null {
+    if (!this.window || this.window.isDestroyed() || this.window.webContents?.isCrashed()) {
+      return null;
+    }
     return this.window;
   }
 
@@ -139,6 +142,16 @@ export class HUDWindowManager {
 
     this.window.webContents.on('render-process-gone', (_event, details) => {
       logError(`[Renderer] render-process-gone: reason=${details.reason}, exitCode=${details.exitCode}`);
+      try {
+        if (this.window && !this.window.isDestroyed()) {
+          this.window.destroy();
+        }
+      } catch {}
+      this.window = null;
+      logInfo('[HUD] Window destroyed following render crash. Auto-recovering window in 500ms...');
+      setTimeout(() => {
+        this.createWindow();
+      }, 500);
     });
 
     this.window.webContents.on('did-finish-load', () => {
@@ -159,8 +172,12 @@ export class HUDWindowManager {
   }
 
   public showHUD(): void {
-    if (!this.window || this.window.isDestroyed()) {
-      logInfo('[HUD] showHUD called but window is null or destroyed. Re-creating window.');
+    if (!this.window || this.window.isDestroyed() || this.window.webContents?.isCrashed()) {
+      logInfo('[HUD] showHUD called but window is null, destroyed, or crashed. Re-creating window.');
+      if (this.window && !this.window.isDestroyed()) {
+        try { this.window.destroy(); } catch {}
+      }
+      this.window = null;
       this.createWindow();
       return;
     }

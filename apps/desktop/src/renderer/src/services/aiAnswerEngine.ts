@@ -93,7 +93,7 @@ export class AIAnswerEngine {
         },
         body: JSON.stringify({
           model:
-            (import.meta as any).env?.VITE_GROQ_MODEL || 'llama-3.3-70b-versatile',
+            (import.meta as any).env?.VITE_GROQ_MODEL || 'openai/gpt-oss-120b',
           max_tokens: 600,
           temperature: 0.2,
           stream: true,
@@ -114,7 +114,7 @@ export class AIAnswerEngine {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+            model: 'openai/gpt-oss-20b',
             max_tokens: 600,
             temperature: 0.2,
             stream: true,

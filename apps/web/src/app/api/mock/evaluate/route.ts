@@ -101,7 +101,7 @@ Output only valid JSON.`;
         let evalCompletion;
         try {
           evalCompletion = await groq.chat.completions.create({
-            model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+            model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
             messages: [
               { role: 'system', content: 'You are an expert technical interviewer. Output valid JSON only.' },
               { role: 'user', content: evalPrompt },
@@ -110,7 +110,7 @@ Output only valid JSON.`;
           });
         } catch {
           evalCompletion = await groq.chat.completions.create({
-            model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+            model: 'openai/gpt-oss-20b',
             messages: [
               { role: 'system', content: 'You are an expert technical interviewer. Output valid JSON only.' },
               { role: 'user', content: evalPrompt },

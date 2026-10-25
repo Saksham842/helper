@@ -66,7 +66,7 @@ assert(parsed.code.includes('return [seen[complement], i]'), 'Failed to extract 
 console.log('✓ Groq Vision solution parser and code extractor verified');
 
 // 3. Test Groq Llama 4 Multimodal Vision Payload Construction
-function constructGroqVisionPayload(apiKey, base64Image, language, systemPrompt = 'You are GhostPilot.', model = 'llama-3.2-11b-vision-preview') {
+function constructGroqVisionPayload(apiKey, base64Image, language, systemPrompt = 'You are GhostPilot.', model = 'qwen/qwen3.8-27b') {
   const prompt = `Analyze the coding problem on my screen and provide the optimal solution in ${language}.`;
 
   return {
@@ -99,7 +99,7 @@ function constructGroqVisionPayload(apiKey, base64Image, language, systemPrompt 
 }
 
 const payload = constructGroqVisionPayload('gsk_test_key_12345', cleaned, 'Python');
-assert.strictEqual(payload.model, 'llama-3.2-11b-vision-preview');
+assert.strictEqual(payload.model, 'qwen/qwen3.8-27b');
 assert.strictEqual(payload.messages[0].role, 'system');
 assert.strictEqual(payload.messages[1].role, 'user');
 assert.strictEqual(payload.messages[1].content[0].type, 'text');
@@ -110,8 +110,8 @@ assert.strictEqual(
   `data:image/png;base64,${cleaned}`
 );
 
-const fallbackPayload = constructGroqVisionPayload('gsk_test_key_12345', cleaned, 'Python', undefined, 'meta-llama/llama-4-maverick-17b-128e-instruct');
-assert.strictEqual(fallbackPayload.model, 'meta-llama/llama-4-maverick-17b-128e-instruct');
-console.log('✓ Groq Vision (llama-3.2-11b-vision-preview & llama-4-maverick) payload specification verified');
+const fallbackPayload = constructGroqVisionPayload('gsk_test_key_12345', cleaned, 'Python', undefined, 'qwen/qwen3.8-27b');
+assert.strictEqual(fallbackPayload.model, 'qwen/qwen3.8-27b');
+console.log('✓ Groq Vision (qwen/qwen3.8-27b) payload specification verified');
 
 console.log('\n[Test Harness] ALL SILENT VISION SOLVER TESTS PASSED!\n');

@@ -37,7 +37,7 @@ CRITICAL INSTRUCTIONS:
     let stream;
     try {
       stream = await groq.chat.completions.create({
-        model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+        model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
@@ -47,7 +47,7 @@ CRITICAL INSTRUCTIONS:
     } catch (primaryErr) {
       console.warn('[Copilot Answer] Primary model failed, trying fallback:', primaryErr);
       stream = await groq.chat.completions.create({
-        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+        model: 'openai/gpt-oss-20b',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },

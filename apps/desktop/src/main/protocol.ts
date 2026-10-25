@@ -26,12 +26,22 @@ export function handleDeepLinkUrl(urlStr: string, mainWindow: BrowserWindow | nu
     const email = parsed.searchParams.get('email') || undefined;
     const userId = parsed.searchParams.get('userId') || undefined;
 
-    if (token && mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send('auth:token-received', {
-        token,
-        email,
-        userId,
-      });
+    if (token && mainWindow && !mainWindow.isDestroyed() && !mainWindow.webContents.isCrashed()) {
+      const sendToken = () => {
+        if (!mainWindow.isDestroyed() && !mainWindow.webContents.isCrashed()) {
+          mainWindow.webContents.send('auth:token-received', {
+            token,
+            email,
+            userId,
+          });
+        }
+      };
+
+      if (mainWindow.webContents.isLoading()) {
+        mainWindow.webContents.once('did-finish-load', sendToken);
+      } else {
+        sendToken();
+      }
 
       if (mainWindow.isMinimized()) mainWindow.restore();
       return true;
