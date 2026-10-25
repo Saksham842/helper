@@ -1,11 +1,4 @@
-import { createRequire } from 'module';
-import { join } from 'path';
 import mammoth from 'mammoth';
-
-// Use process.cwd()-based require so this works in both ESM and CJS
-// Next.js App Router server routes — import.meta.url is unreliable in CJS
-// webpack bundles, so we anchor createRequire to the project root instead.
-const _require = createRequire(join(process.cwd(), 'package.json'));
 
 export interface ExtractedDocument {
   text: string;
@@ -31,61 +24,49 @@ export function normalizeExtractedText(rawText: string): string {
 }
 
 /**
- * Pure-JS fallback: extract raw text from a PDF buffer by parsing
- * content stream operators (BT/ET/Tj/TJ/') without pdfjs.
- * Handles basic ASCII and Latin-1 encoded PDF text streams.
+ * Regex-based fallback — mirrors IntervieHire's resume_parser.py pattern:
+ *   strings = re.findall(rb"[a-zA-Z0-9\s\.,;:!?\-\'\"]{4,}", content)
+ * Extracts printable ASCII runs of 4+ chars directly from the raw binary.
  */
 function extractPdfTextFallback(buffer: Buffer): string {
-  const content = buffer.toString('latin1');
-  const lines: string[] = [];
+  const content = buffer.toString('binary');
+  // Match printable ASCII sequences of 4+ characters (same regex as the Python fallback)
+  const matches = content.match(/[a-zA-Z0-9 .,;:!?\-'"]{4,}/g) || [];
+  return matches.slice(0, 2000).join(' ');
+}
 
-  // Match everything between BT and ET (text blocks)
-  const btEtRegex = /BT([\s\S]*?)ET/g;
-  let block: RegExpExecArray | null;
-
-  while ((block = btEtRegex.exec(content)) !== null) {
-    const chunk = block[1];
-    // Extract Tj (single string): (text) Tj
-    const tjRegex = /\(([^)]*)\)\s*Tj/g;
-    let m: RegExpExecArray | null;
-    while ((m = tjRegex.exec(chunk)) !== null) {
-      lines.push(m[1]);
+/**
+ * Extract plain text from a PDF buffer using `unpdf`.
+ *
+ * `unpdf` ships its own bundled pdfjs distribution and does NOT depend on
+ * the system's pdfjs-dist package, so it is completely safe to use inside
+ * Next.js 15 App Router server routes without any Webpack bundling errors.
+ * This mirrors the pypdf → regex-fallback pattern in IntervieHire's
+ * backend/app/utils/resume_parser.py.
+ */
+async function extractPdfText(buffer: Buffer): Promise<string> {
+  // Primary: unpdf (bundled pdfjs — zero Webpack conflicts)
+  try {
+    const { extractText } = await import('unpdf');
+    const uint8 = new Uint8Array(buffer);
+    const result = await extractText(uint8, { mergePages: true });
+    const text = (result as any)?.text ?? '';
+    if (text.trim().length > 0) {
+      console.log(`[Extractor] unpdf extracted ${text.length} chars`);
+      return text;
     }
-    // Extract TJ (array): [(text) n (text2) ...] TJ
-    const tjArrRegex = /\[([\s\S]*?)\]\s*TJ/g;
-    while ((m = tjArrRegex.exec(chunk)) !== null) {
-      const inner = m[1];
-      const parts: string[] = [];
-      const partRegex = /\(([^)]*)\)/g;
-      let p: RegExpExecArray | null;
-      while ((p = partRegex.exec(inner)) !== null) {
-        parts.push(p[1]);
-      }
-      if (parts.length > 0) lines.push(parts.join(''));
-    }
-    // Handle ' operator (move to next line + show string)
-    const quoteRegex = /\(([^)]*)\)\s*'/g;
-    while ((m = quoteRegex.exec(chunk)) !== null) {
-      lines.push(m[1]);
-    }
+    console.warn('[Extractor] unpdf returned empty text, falling back to regex');
+  } catch (err: any) {
+    console.warn('[Extractor] unpdf failed, falling back to regex:', err?.message);
   }
 
-  // Unescape basic PDF string escape sequences
-  return lines
-    .join(' ')
-    .replace(/\\n/g, '\n')
-    .replace(/\\r/g, '\r')
-    .replace(/\\t/g, '\t')
-    .replace(/\\\\/g, '\\')
-    .replace(/\\\(/g, '(')
-    .replace(/\\\)/g, ')');
+  // Fallback: raw binary regex (no dependencies)
+  console.log('[Extractor] Using regex fallback for PDF');
+  return extractPdfTextFallback(buffer);
 }
 
 /**
  * Extract plain text from PDF or DOCX buffer.
- * Uses createRequire so that pdf-parse is loaded via native Node require
- * and is NEVER bundled through Webpack (which causes the
- * "Object.defineProperty called on non-object" crash in Next.js 15).
  */
 export async function extractTextFromBuffer(
   buffer: Buffer,
@@ -105,27 +86,7 @@ export async function extractTextFromBuffer(
   let rawText = '';
 
   if (isPdf) {
-    try {
-      // _require bypasses Webpack SSR entirely — pdf-parse is required
-      // as a plain Node.js module, avoiding the pdfjs-dist ESM bootstrap
-      // that crashes inside __webpack_require__.r on non-object namespaces.
-      const pdfParse = _require('pdf-parse') as (
-        dataBuffer: Buffer,
-        options?: Record<string, unknown>
-      ) => Promise<{ text: string; numpages: number }>;
-
-      const result = await pdfParse(buffer, { max: 0 });
-      rawText = result?.text || '';
-    } catch (err: any) {
-      console.warn('[Extractor] pdf-parse failed, using pure-JS fallback:', err?.message);
-      // Pure-JS fallback: parses BT/ET/Tj/TJ operators directly
-      try {
-        rawText = extractPdfTextFallback(buffer);
-      } catch (fallbackErr: any) {
-        console.error('[Extractor] Pure-JS PDF fallback also failed:', fallbackErr);
-        throw new Error(`Failed to extract text from PDF: ${err?.message || 'Unknown error'}`);
-      }
-    }
+    rawText = await extractPdfText(buffer);
   } else if (isDocx) {
     try {
       const result = await mammoth.extractRawText({ buffer });

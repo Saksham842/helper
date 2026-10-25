@@ -3,9 +3,10 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   transpilePackages: ['@ghostpilot/shared'],
   reactStrictMode: true,
-  // Prevent Webpack from bundling these Node-native / ESM-problematic packages.
-  // Next.js 15 will require() them directly from node_modules at runtime.
-  serverExternalPackages: ['pdf-parse', 'pdfjs-dist', 'mammoth'],
+  // Keep mammoth external so Next.js never bundles it through Webpack.
+  // unpdf is NOT listed here — it resolves cleanly via dynamic import()
+  // because it ships its own self-contained pdfjs bundle with no ESM/CJS shims.
+  serverExternalPackages: ['mammoth'],
 };
 
 export default nextConfig;
