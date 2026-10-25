@@ -1,6 +1,8 @@
 import { app, BrowserWindow, screen, ipcMain, desktopCapturer } from 'electron';
+import fs from 'node:fs';
 import path from 'node:path';
 import type { HUDState } from '@ghostpilot/shared';
+import { logInfo, logWarn, logError } from './logger';
 
 export class HUDWindowManager {
   private window: BrowserWindow | null = null;
@@ -29,7 +31,7 @@ export class HUDWindowManager {
       try {
         app.dock.hide();
       } catch (err) {
-        console.error('Failed to hide macOS dock icon:', err);
+        logError('Failed to hide macOS dock icon:', err);
       }
     }
 
@@ -40,6 +42,8 @@ export class HUDWindowManager {
     const windowHeight = 620;
     const posX = screenX + screenWidth - windowWidth - 24;
     const posY = screenY + 24;
+
+    logInfo(`[HUD] Creating BrowserWindow at x=${posX}, y=${posY}, size=${windowWidth}x${windowHeight}`);
 
     this.window = new BrowserWindow({
       width: windowWidth,
@@ -72,8 +76,9 @@ export class HUDWindowManager {
     try {
       this.window.setContentProtection(true);
       this.state.isContentProtected = true;
+      logInfo('[HUD] Content protection (WDA_EXCLUDEFROMCAPTURE) enabled.');
     } catch (err) {
-      console.error('Failed to set content protection:', err);
+      logError('[HUD] Failed to set content protection:', err);
       this.state.isContentProtected = false;
     }
 
@@ -84,16 +89,51 @@ export class HUDWindowManager {
     this.state.isVisible = true;
 
     if (process.env.VITE_DEV_SERVER_URL) {
-      this.window.loadURL(process.env.VITE_DEV_SERVER_URL);
+      logInfo('[HUD] Loading from Dev Server URL:', process.env.VITE_DEV_SERVER_URL);
+      this.window.loadURL(process.env.VITE_DEV_SERVER_URL).catch((err) => {
+        logError('[HUD] Failed to loadURL from VITE_DEV_SERVER_URL:', err);
+      });
     } else {
-      this.window.loadFile(path.join(__dirname, '../renderer/index.html'));
+      // Production index.html candidates
+      const candidatePaths = [
+        path.join(app.getAppPath(), 'dist', 'index.html'),
+        path.resolve(__dirname, '../../dist/index.html'),
+        path.resolve(__dirname, '../renderer/index.html'),
+        path.join(process.resourcesPath, 'app.asar', 'dist', 'index.html'),
+      ];
+
+      let targetHtmlPath: string | null = null;
+      for (const p of candidatePaths) {
+        try {
+          if (fs.existsSync(p)) {
+            targetHtmlPath = p;
+            break;
+          }
+        } catch {}
+      }
+
+      if (!targetHtmlPath) {
+        targetHtmlPath = candidatePaths[0];
+        logWarn(`[HUD] Could not verify candidate path with fs.existsSync, falling back to: ${targetHtmlPath}`);
+      }
+
+      logInfo(`[HUD] Loading renderer index.html from resolved path: ${targetHtmlPath}`);
+      this.window.loadFile(targetHtmlPath).catch((err) => {
+        logError(`[HUD] Failed to loadFile (${targetHtmlPath}):`, err);
+      });
     }
 
     this.window.webContents.on('did-finish-load', () => {
+      logInfo('[HUD] webContents did-finish-load successfully.');
       this.broadcastState();
     });
 
+    this.window.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
+      logError(`[HUD] webContents did-fail-load: code=${errorCode}, desc=${errorDescription}, url=${validatedURL}`);
+    });
+
     this.window.on('closed', () => {
+      logInfo('[HUD] BrowserWindow closed event received.');
       this.window = null;
     });
 
@@ -101,12 +141,16 @@ export class HUDWindowManager {
   }
 
   public showHUD(): void {
-    if (!this.window) return;
+    if (!this.window || this.window.isDestroyed()) {
+      logInfo('[HUD] showHUD called but window is null or destroyed. Re-creating window.');
+      this.createWindow();
+      return;
+    }
     try {
       this.window.setContentProtection(true);
       this.state.isContentProtected = true;
     } catch (err) {
-      console.error('Failed to re-assert content protection on showHUD:', err);
+      logError('[HUD] Failed to re-assert content protection on showHUD:', err);
     }
     this.window.setAlwaysOnTop(true, 'screen-saver', 1);
     this.window.setFocusable(false);
