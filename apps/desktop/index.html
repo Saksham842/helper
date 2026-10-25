@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GhostPilot Copilot</title>
+    <script>
+      console.log('[HTML] Head inline script loaded. DOM readyState:', document.readyState);
+      window.onerror = function(msg, url, line, col, err) {
+        console.error('[HTML window.onerror]', msg, url, line, col, err);
+      };
+    </script>
   </head>
   <body style="margin: 0; background: transparent; overflow: hidden; user-select: none;">
     <div id="root"></div>

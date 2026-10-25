@@ -62,18 +62,6 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({ children }) => {
     return undefined;
   }, []);
 
-  const handleMouseEnter = () => {
-    if (window.electronAPI?.setDynamicIgnoreMouse) {
-      window.electronAPI.setDynamicIgnoreMouse(false);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (window.electronAPI?.setDynamicIgnoreMouse) {
-      window.electronAPI.setDynamicIgnoreMouse(true);
-    }
-  };
-
   const handleToggleClickThrough = async () => {
     if (window.electronAPI?.toggleHUDClickThrough) {
       const updated = await window.electronAPI.toggleHUDClickThrough();
@@ -91,19 +79,16 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({ children }) => {
 
   return (
     <div
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
       style={{
         width: '100%',
         height: '100%',
         boxSizing: 'border-box',
         display: 'flex',
         flexDirection: 'column',
-        borderRadius: '24px',
-        background: 'rgba(9, 11, 17, 0.88)',
-        backdropFilter: 'blur(24px) saturate(180%)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        boxShadow: '0 24px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+        borderRadius: '20px',
+        background: 'rgba(15, 23, 42, 0.96)',
+        border: '1px solid rgba(255, 255, 255, 0.12)',
+        boxShadow: '0 24px 60px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
         color: '#f4f4f5',
         overflow: 'hidden',
         transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',

@@ -50,10 +50,10 @@ export class HUDWindowManager {
       height: windowHeight,
       x: posX,
       y: posY,
+      show: false, // Critical for Windows 11 DWM: do not paint until content is ready
       transparent: true,
       frame: false,
       hasShadow: false,
-      backgroundColor: '#00000000',
       skipTaskbar: true, // Stealth from Windows Taskbar / Alt-Tab
       focusable: false,  // Anti-blur: never steals focus from interview coding platforms
       alwaysOnTop: true,
@@ -67,26 +67,36 @@ export class HUDWindowManager {
       },
     });
 
-    // Topmost level guarantees visibility over full-screen apps and video calls
-    this.window.setAlwaysOnTop(true, 'screen-saver', 1);
-    this.window.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-
-    // Screen protection: invokes SetWindowDisplayAffinity(WDA_EXCLUDEFROMCAPTURE) on Win32
-    // and NSWindowSharingNone on macOS
-    try {
-      this.window.setContentProtection(true);
-      this.state.isContentProtected = true;
-      logInfo('[HUD] Content protection (WDA_EXCLUDEFROMCAPTURE) enabled.');
-    } catch (err) {
-      logError('[HUD] Failed to set content protection:', err);
-      this.state.isContentProtected = false;
+    if (process.platform === 'darwin') {
+      this.window.setAlwaysOnTop(true, 'screen-saver', 1);
+      this.window.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+    } else {
+      this.window.setAlwaysOnTop(true);
     }
 
     this.window.setOpacity(this.state.opacity);
 
-    // Initial show without stealing focus
-    this.window.showInactive();
-    this.state.isVisible = true;
+    const applySafeDisplay = () => {
+      if (!this.window || this.window.isDestroyed()) return;
+      if (!this.window.isVisible()) {
+        logInfo('[HUD] Displaying HUD overlay window.');
+        this.window.showInactive();
+        this.state.isVisible = true;
+      }
+      try {
+        this.window.setContentProtection(true);
+        this.state.isContentProtected = true;
+        logInfo('[HUD] Content protection (WDA_EXCLUDEFROMCAPTURE) applied.');
+      } catch (err) {
+        logError('[HUD] Failed to set content protection:', err);
+      }
+      this.broadcastState();
+    };
+
+    this.window.once('ready-to-show', () => {
+      logInfo('[HUD] ready-to-show event fired.');
+      applySafeDisplay();
+    });
 
     if (process.env.VITE_DEV_SERVER_URL) {
       logInfo('[HUD] Loading from Dev Server URL:', process.env.VITE_DEV_SERVER_URL);
@@ -123,9 +133,17 @@ export class HUDWindowManager {
       });
     }
 
+    this.window.webContents.on('console-message', (_event, level, message, line, sourceId) => {
+      logInfo(`[Renderer Console] [lvl:${level}] ${message} (${sourceId}:${line})`);
+    });
+
+    this.window.webContents.on('render-process-gone', (_event, details) => {
+      logError(`[Renderer] render-process-gone: reason=${details.reason}, exitCode=${details.exitCode}`);
+    });
+
     this.window.webContents.on('did-finish-load', () => {
       logInfo('[HUD] webContents did-finish-load successfully.');
-      this.broadcastState();
+      applySafeDisplay();
     });
 
     this.window.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL) => {
@@ -146,16 +164,20 @@ export class HUDWindowManager {
       this.createWindow();
       return;
     }
+    if (process.platform === 'darwin') {
+      this.window.setAlwaysOnTop(true, 'screen-saver', 1);
+    } else {
+      this.window.setAlwaysOnTop(true);
+    }
+    this.window.setFocusable(false);
+    this.window.showInactive();
+    this.state.isVisible = true;
     try {
       this.window.setContentProtection(true);
       this.state.isContentProtected = true;
     } catch (err) {
       logError('[HUD] Failed to re-assert content protection on showHUD:', err);
     }
-    this.window.setAlwaysOnTop(true, 'screen-saver', 1);
-    this.window.setFocusable(false);
-    this.window.showInactive();
-    this.state.isVisible = true;
     this.broadcastState();
   }
 
