@@ -18,8 +18,16 @@ import {
   RefreshCw,
   Send,
   User,
-  Radio,
+  Shield,
+  ShieldAlert,
+  ShieldCheck,
+  Zap,
+  Activity,
+  Flame,
 } from 'lucide-react';
+import { WaitingRoom } from './WaitingRoom';
+import { useSpeechMetrics } from '@/hooks/useSpeechMetrics';
+import { useProctoring } from '@/hooks/useProctoring';
 
 interface TranscriptItem {
   speaker: 'interviewer' | 'candidate';
@@ -31,6 +39,8 @@ export default function MockInterviewPage() {
   const [selectedTrack, setSelectedTrack] = useState<string>('System Design & Architecture');
   const [difficulty, setDifficulty] = useState<string>('Senior');
   const [isStarted, setIsStarted] = useState<boolean>(false);
+  const [inWaitingRoom, setInWaitingRoom] = useState<boolean>(false);
+  const [proctoringEnabled, setProctoringEnabled] = useState<boolean>(true);
   const [isAiSpeaking, setIsAiSpeaking] = useState<boolean>(false);
   const [isCandidateListening, setIsCandidateListening] = useState<boolean>(false);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
@@ -41,6 +51,11 @@ export default function MockInterviewPage() {
   const [isGeneratingNext, setIsGeneratingNext] = useState<boolean>(false);
   const [isFinishing, setIsFinishing] = useState<boolean>(false);
   const [scorecardResult, setScorecardResult] = useState<any | null>(null);
+
+  const { metrics, markInterviewerFinished, processTranscript, resetMetrics } = useSpeechMetrics();
+  const { incidents, violationCount, activeToast, dismissToast, resetProctoring } = useProctoring({
+    enabled: isStarted && proctoringEnabled,
+  });
 
   const recognitionRef = useRef<any>(null);
   const transcriptEndRef = useRef<HTMLDivElement>(null);
@@ -107,11 +122,13 @@ export default function MockInterviewPage() {
 
     utterance.onend = () => {
       setIsAiSpeaking(false);
+      markInterviewerFinished();
       if (onEnd) onEnd();
     };
 
     utterance.onerror = () => {
       setIsAiSpeaking(false);
+      markInterviewerFinished();
       if (onEnd) onEnd();
     };
 
@@ -152,7 +169,12 @@ export default function MockInterviewPage() {
         let interim = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
           if (event.results[i].isFinal) {
-            setCurrentCandidateInput((prev) => (prev ? prev + ' ' : '') + event.results[i][0].transcript);
+            const added = event.results[i][0].transcript;
+            setCurrentCandidateInput((prev) => {
+              const full = (prev ? prev + ' ' : '') + added;
+              processTranscript(full);
+              return full;
+            });
           } else {
             interim += event.results[i][0].transcript;
           }
@@ -189,8 +211,11 @@ export default function MockInterviewPage() {
 
   const handleStartInterview = async () => {
     setIsStarted(true);
+    setInWaitingRoom(false);
     setHistory([]);
     setScorecardResult(null);
+    resetMetrics();
+    resetProctoring();
 
     const initialPrompts: Record<string, string> = {
       'System Design & Architecture':
@@ -293,7 +318,11 @@ export default function MockInterviewPage() {
       });
 
       const data = await res.json();
-      setScorecardResult(data);
+      setScorecardResult({
+        ...data,
+        metrics,
+        incidents,
+      });
     } catch (err) {
       console.error('[Mock Finish Error]:', err);
     } finally {
@@ -359,11 +388,11 @@ export default function MockInterviewPage() {
               </div>
 
               <button
-                onClick={handleStartInterview}
+                onClick={() => setInWaitingRoom(true)}
                 className="w-full md:w-auto flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-teal-500 to-emerald-400 px-6 py-3.5 text-sm font-bold text-black shadow-lg hover:brightness-110 transition-all cursor-pointer"
               >
                 <Play className="h-4 w-4 fill-black" />
-                <span>Start Simulation Round</span>
+                <span>Enter Tech Check & Waiting Room</span>
               </button>
             </div>
 
@@ -410,7 +439,7 @@ export default function MockInterviewPage() {
                 </div>
               </div>
 
-              {/* Difficulty & Resume Status */}
+              {/* Difficulty & Settings */}
               <div className="flex flex-col gap-6">
                 <div className="rounded-3xl border border-white/10 bg-[#12141c] p-6 flex flex-col gap-4">
                   <h3 className="text-sm font-bold uppercase tracking-wider text-zinc-400">
@@ -445,23 +474,64 @@ export default function MockInterviewPage() {
                   </div>
                 </div>
 
-                <div className="rounded-3xl border border-white/10 bg-[#12141c]/50 p-6 text-xs text-zinc-400 leading-relaxed flex flex-col gap-2">
-                  <span className="font-bold text-white flex items-center gap-1.5">
-                    <Radio className="h-3.5 w-3.5 text-teal-400" />
-                    Audio Hardware Notice
-                  </span>
-                  <span>
-                    When the simulation begins, the AI will speak via your speakers and transcribe your verbal responses using your browser microphone.
-                  </span>
+                {/* Fair-Play Assessment Mode Toggle */}
+                <div className="rounded-3xl border border-white/10 bg-[#12141c] p-6 flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-zinc-200 flex items-center gap-1.5">
+                      <Shield className="h-4 w-4 text-emerald-400" />
+                      Fair-Play Assessment Mode
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setProctoringEnabled(!proctoringEnabled)}
+                      className={`h-5 w-9 rounded-full transition-colors relative cursor-pointer ${
+                        proctoringEnabled ? 'bg-emerald-500' : 'bg-zinc-700'
+                      }`}
+                    >
+                      <span
+                        className={`block h-3.5 w-3.5 rounded-full bg-white transition-transform ${
+                          proctoringEnabled ? 'translate-x-4' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 leading-relaxed">
+                    Simulates strict proctored testing: tracks tab-switching, focus loss, and prohibited shortcuts to benchmark interview readiness.
+                  </p>
                 </div>
               </div>
             </div>
           </div>
         )}
 
+        {/* Pre-Interview Waiting Room / Tech Check */}
+        {inWaitingRoom && !isStarted && !scorecardResult && (
+          <WaitingRoom
+            onReady={handleStartInterview}
+            targetRole={`${difficulty} ${selectedTrack}`}
+            interviewTrack={selectedTrack}
+          />
+        )}
+
         {/* Live Active Interview Stage */}
         {isStarted && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Active Proctoring / Fair-Play Alert Toast */}
+            {activeToast && (
+              <div className="lg:col-span-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 p-3.5 text-xs text-amber-200 flex items-center justify-between shadow-lg">
+                <div className="flex items-center gap-2.5">
+                  <ShieldAlert className="h-4 w-4 text-amber-400 shrink-0 animate-bounce" />
+                  <span className="font-semibold">{activeToast}</span>
+                </div>
+                <button
+                  onClick={dismissToast}
+                  className="text-xs text-amber-400 hover:text-white px-2 py-0.5 rounded cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
             {/* Visual Voice Stage (1 Col) */}
             <div className="rounded-3xl border border-white/10 bg-[#12141c] p-6 flex flex-col items-center justify-between text-center gap-6 shadow-xl">
               <div className="flex items-center justify-between w-full">
@@ -539,6 +609,58 @@ export default function MockInterviewPage() {
 
             {/* Conversation Transcript Feed & Input (2 Cols) */}
             <div className="lg:col-span-2 rounded-3xl border border-white/10 bg-[#12141c] flex flex-col justify-between overflow-hidden shadow-xl">
+              {/* Live Speech Metrics Bar */}
+              <div className="px-5 py-2.5 bg-white/[0.02] border-b border-white/5 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1.5">
+                    <Activity className="h-3.5 w-3.5 text-teal-400" />
+                    <span className="text-zinc-400">Pace:</span>
+                    <span className="font-bold text-white font-mono">{metrics.wpm} WPM</span>
+                    <span
+                      className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                        metrics.tone?.paceRating === 'Optimal Pace'
+                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                          : metrics.tone?.paceRating === 'Too Fast'
+                          ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                          : 'bg-zinc-800 text-zinc-400'
+                      }`}
+                    >
+                      {metrics.tone?.paceRating || 'Optimal'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <Flame className="h-3.5 w-3.5 text-amber-400" />
+                    <span className="text-zinc-400">Fillers:</span>
+                    <span className="font-bold text-white font-mono">{metrics.fillerWordCount}</span>
+                    <span className="text-zinc-500 text-[10px]">({metrics.fillerRatioPercent}%)</span>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <Zap className="h-3.5 w-3.5 text-purple-400" />
+                    <span className="text-zinc-400">Confidence:</span>
+                    <span className="font-bold text-purple-300 font-mono">{metrics.confidenceScore}%</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {proctoringEnabled ? (
+                    violationCount === 0 ? (
+                      <span className="flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full font-semibold">
+                        <ShieldCheck className="h-3 w-3" />
+                        Fair-Play Clean
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 rounded-full font-semibold">
+                        <ShieldAlert className="h-3 w-3" />
+                        {violationCount} Focus Flags
+                      </span>
+                    )
+                  ) : (
+                    <span className="text-[10px] text-zinc-500">Practice Mode</span>
+                  )}
+                </div>
+              </div>
               {/* Transcript Timeline */}
               <div className="flex-1 max-h-[460px] overflow-y-auto p-6 flex flex-col gap-4">
                 {history.map((item, idx) => {
@@ -588,7 +710,10 @@ export default function MockInterviewPage() {
                   <textarea
                     rows={2}
                     value={currentCandidateInput}
-                    onChange={(e) => setCurrentCandidateInput(e.target.value)}
+                    onChange={(e) => {
+                      setCurrentCandidateInput(e.target.value);
+                      processTranscript(e.target.value);
+                    }}
                     placeholder="Type or speak your answer here..."
                     className="flex-1 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-xs text-white focus:border-teal-500 focus:outline-none"
                     onKeyDown={(e) => {
@@ -720,6 +845,123 @@ export default function MockInterviewPage() {
                   ))}
                 </ul>
               </div>
+            </div>
+
+            {/* Speech Delivery & Tone Analytics Card */}
+            <div className="rounded-3xl border border-purple-500/20 bg-gradient-to-r from-purple-950/20 via-[#12141c] to-[#12141c] p-6 flex flex-col gap-5 shadow-xl">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/5 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400">
+                    <Activity className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Voice & Delivery Style Analytics</h3>
+                    <span className="text-[11px] text-zinc-400">Heuristic speech pace, verbal filler ratio, and STAR structure adherence</span>
+                  </div>
+                </div>
+
+                <span className="rounded-full bg-purple-500/20 border border-purple-500/30 px-3 py-1 text-xs font-bold text-purple-300">
+                  {scorecardResult.metrics?.tone?.deliveryStyle || 'Confident & Articulate'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4 flex flex-col gap-1">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Speaking Tempo</span>
+                  <span className="text-lg font-bold text-white font-mono">{scorecardResult.metrics?.wpm || 135} WPM</span>
+                  <span className="text-[10px] text-emerald-400 font-medium">
+                    {scorecardResult.metrics?.tone?.paceRating || 'Optimal Pace (120–160)'}
+                  </span>
+                </div>
+
+                <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4 flex flex-col gap-1">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Verbal Fillers</span>
+                  <span className="text-lg font-bold text-white font-mono">{scorecardResult.metrics?.fillerWordCount || 0}</span>
+                  <span className="text-[10px] text-zinc-400">
+                    {scorecardResult.metrics?.fillerRatioPercent || 0}% of spoken words
+                  </span>
+                </div>
+
+                <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4 flex flex-col gap-1">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Speaking Confidence</span>
+                  <span className="text-lg font-bold text-purple-300 font-mono">{scorecardResult.metrics?.confidenceScore || 85}%</span>
+                  <span className="text-[10px] text-zinc-400">Pace consistency metric</span>
+                </div>
+
+                <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4 flex flex-col gap-1">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">STAR Adherence</span>
+                  <span className="text-lg font-bold text-teal-300 font-mono">
+                    {scorecardResult.metrics?.tone?.starAdherence?.scorePercent || 75}%
+                  </span>
+                  <span className="text-[10px] text-teal-400 font-medium">Behavioral structure</span>
+                </div>
+              </div>
+
+              {/* Coaching Tips */}
+              {scorecardResult.metrics?.tone?.tips && scorecardResult.metrics.tone.tips.length > 0 && (
+                <div className="rounded-2xl border border-white/5 bg-black/30 p-4 flex flex-col gap-2">
+                  <span className="text-[11px] font-bold text-purple-300 uppercase tracking-wider">
+                    Voice Delivery Recommendations
+                  </span>
+                  <ul className="flex flex-col gap-1.5 text-xs text-zinc-300">
+                    {scorecardResult.metrics.tone.tips.map((tip: string, i: number) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="text-purple-400 font-bold">›</span>
+                        <span>{tip}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* Fair-Play Assessment Proctoring Audit */}
+            <div className="rounded-3xl border border-white/10 bg-[#12141c] p-6 flex flex-col gap-4 shadow-xl">
+              <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                  <h3 className="text-sm font-bold text-white">Fair-Play Assessment Proctoring Audit</h3>
+                </div>
+                <span
+                  className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${
+                    !scorecardResult.incidents || scorecardResult.incidents.length === 0
+                      ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                      : 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                  }`}
+                >
+                  {!scorecardResult.incidents || scorecardResult.incidents.length === 0
+                    ? '100% Integrity Clean'
+                    : `${scorecardResult.incidents.length} Flags Detected`}
+                </span>
+              </div>
+
+              <p className="text-xs text-zinc-400 leading-relaxed">
+                {!scorecardResult.incidents || scorecardResult.incidents.length === 0
+                  ? 'Congratulations! Zero tab switches, blur focus losses, or restricted copy/paste events were recorded during your interview session. Your assessment meets top enterprise proctoring requirements.'
+                  : `During the session, ${scorecardResult.incidents.length} focus loss or window blur incidents were noted. In a strict corporate assessment (HireVue, HackerRank), these triggers are flagged to recruiters.`}
+              </p>
+
+              {scorecardResult.incidents && scorecardResult.incidents.length > 0 && (
+                <div className="flex flex-col gap-2 pt-2">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                    Logged Event Timeline
+                  </span>
+                  <div className="flex flex-col gap-1.5">
+                    {scorecardResult.incidents.map((inc: any, i: number) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between text-xs p-2.5 rounded-xl bg-white/[0.02] border border-white/5"
+                      >
+                        <span className="text-amber-300 font-mono">{inc.type}</span>
+                        <span className="text-zinc-400">{inc.message}</span>
+                        <span className="text-[11px] text-zinc-500 font-mono">
+                          {new Date(inc.timestamp).toLocaleTimeString()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Questions Evaluated */}

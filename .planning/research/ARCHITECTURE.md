@@ -1,7 +1,8 @@
 # Architecture Research: GhostPilot Platform
 
-**Domain:** Turborepo Monorepo with Native Stealth Overlay & Cloud Web Platform
+**Domain:** Turborepo Monorepo with Native Stealth Overlay & Cloud Web Platform (100% Free & Open)
 **Researched:** 2026-10-24
+**Updated:** 2026-10-25
 **Confidence:** HIGH
 
 ## System Architecture Overview
@@ -9,37 +10,35 @@
 ```mermaid
 graph TD
     subgraph User Desktop Client [apps/desktop - Electron + Vite + React]
-        HUD[Stealth Overlay Window]
+        HUD[Stealth Overlay Window - SystemAudioHelper]
         AudioLoopback[OS Loopback WASAPI/CoreAudio]
         AudioMic[User Microphone]
-        AudioMixer[Dual-Channel Audio Pipeline]
+        LocalWhisper[Local Offline Whisper STT via transformers.js]
         Shortcuts[Global Shortcuts Handler]
         ScreenCap[Silent DesktopCapturer]
     end
 
-    subgraph Cloud Infrastructure [apps/web & External APIs]
+    subgraph Cloud Infrastructure [apps/web & Groq SDK]
         NextApp[Next.js 15 Web Dashboard]
         SupabaseAuth[Supabase Auth & Session Token]
         SupabaseDB[PostgreSQL with RLS]
-        SupabaseStorage[Resume & Document Vault]
-        RazorpayGateway[Razorpay Payment API]
-        DeepgramWS[Deepgram Nova-2 WebSocket STT]
-        ClaudeAPI[Anthropic Claude 3.5 Streaming & Vision]
+        SupabaseStorage[Resume & Document Vault - unpdf/mammoth]
+        GroqLLM[Groq Cloud API - Llama 3.3 70B Versatile]
+        GroqVision[Groq Vision API - Llama 3.2 11B Vision Preview]
     end
 
-    AudioLoopback --> AudioMixer
-    AudioMic --> AudioMixer
-    AudioMixer -->|PCM Linear16 WebSocket| DeepgramWS
-    DeepgramWS -->|Live Transcripts & Diarization| HUD
-    HUD -->|Prompt + Context| ClaudeAPI
-    ScreenCap -->|Screenshot Buffer| ClaudeAPI
-    ClaudeAPI -->|Streaming Tokens| HUD
-    Shortcuts -->|Toggle HUD / Capture| HUD
-    NextApp -->|Deep-Link Handoff| HUD
+    AudioLoopback --> LocalWhisper
+    AudioMic --> LocalWhisper
+    LocalWhisper -->|Live Transcripts & Diarization| HUD
+    HUD -->|Prompt + Resume Context| GroqLLM
+    ScreenCap -->|Screenshot Buffer| GroqVision
+    GroqLLM -->|Streaming SSE Tokens| HUD
+    GroqVision -->|Code & Complexity Analysis| HUD
+    Shortcuts -->|Toggle HUD / Silent Capture| HUD
+    NextApp -->|copilot://auth Protocol Handoff| HUD
     NextApp --> SupabaseAuth
     NextApp --> SupabaseDB
     NextApp --> SupabaseStorage
-    NextApp --> RazorpayGateway
 ```
 
 ## Native Stealth HUD Layer
@@ -54,29 +53,29 @@ graph TD
 3. **OS-Level Camouflage**:
    - `skipTaskbar: true` removes app from Taskbar and Alt-Tab on Windows.
    - `LSUIElement: true` and `app.dock.hide()` on macOS runs app as a background daemon invisible to the Dock and Cmd-Tab.
-   - Executable and process named `SystemAudioHelper` / `DisplayAudioService` in `electron-builder.yml`.
+   - Executable and process named `SystemAudioHelper` in `electron-builder.yml`.
 
-## Audio Pipeline
+## Audio & Transcription Pipeline
 
 1. **System Loopback Audio**:
    - Captures incoming sound from the caller/interviewer directly from the operating system's audio playback output device (WASAPI loopback on Windows; CoreAudio tap / ScreenCaptureKit on macOS).
 2. **Microphone Audio**:
    - Captures candidate's local microphone input.
-3. **Dual Stream Encoding**:
-   - Both streams converted to linear16 PCM at 16kHz mono.
-   - Multiplexed or tagged into Deepgram Nova-2 WebSocket with diarization flags to track speaker identity with sub-400ms latency.
+3. **100% Free Offline / Cloud STT**:
+   - Desktop client: `@huggingface/transformers` quantized Whisper ONNX model running in-process via WebAssembly SIMD threads with zero external API fees or cloud dependencies.
+   - Web mock interviewer: Native Web Speech API (`SpeechRecognition` & `speechSynthesis`) for zero-latency interactive voice sessions.
 
 ## Real-Time AI & Vision Pipeline
 
 1. **Question Detection Engine**:
    - Streamed transcript analyzed with lightweight heuristics (interrogative words, terminal punctuation, pause detection) or manual hotkey trigger.
 2. **Streaming AI Context**:
-   - Claude 3.5 Sonnet prompt initialized with candidate resume, job context, custom instructions (up to 20k characters), and recent conversation history.
-   - Tokens streamed directly via SSE/WebSocket into the floating HUD.
+   - Groq SDK (`llama-3.3-70b-versatile`) prompt initialized with candidate resume, job context, custom instructions (up to 20k characters), and recent conversation history.
+   - Tokens streamed directly via SSE into the floating HUD with sub-second latency.
 3. **Silent Vision Problem Solver**:
-   - Global shortcut (e.g., `Cmd/Ctrl + Shift + H`) invokes `desktopCapturer.getSources({ types: ['screen'] })`.
+   - Global shortcut (e.g., `Cmd/Ctrl + Shift + H` or `Ctrl + Alt + V`) invokes `desktopCapturer.getSources({ types: ['screen'] })`.
    - Silent JPEG snapshot taken in memory without screen flash or OS snipping overlay.
-   - Image payload dispatched to Claude 3.5 Vision API to extract DSA problem, analyze constraints, and generate solution code and complexity breakdown.
+   - Image payload dispatched to Groq Vision API (`llama-3.2-11b-vision-preview`) to extract DSA problem, analyze constraints, and generate solution code and complexity breakdown.
 
 ## Monorepo Layout
 
@@ -86,13 +85,15 @@ graph TD
 │   │   ├── src
 │   │   │   ├── main        # Electron main process (window, shortcuts, audio, capture)
 │   │   │   ├── preload     # Context isolation bridge
-│   │   │   └── renderer    # React HUD UI overlay
+│   │   │   └── renderer    # React HUD UI overlay + local Whisper STT
 │   │   └── electron-builder.yml
 │   └── web                  # Next.js 15 App Router + Tailwind CSS + Supabase
-│       ├── app             # Dashboard, vault, mock interviews, billing, API routes
+│       ├── src/app         # Dashboard, vault, mock interviews, data-rights, API routes
+│       ├── src/hooks       # useSpeechMetrics, useProctoring
+│       ├── src/lib         # extractor (unpdf/mammoth), resumeIdentity, groq
 │       └── components      # High-end UI components
 ├── packages
-│   ├── shared-types         # Shared TypeScript interfaces (session, audio, AI, auth)
+│   ├── shared               # Shared TypeScript types, questionBank, evaluation heuristics
 │   ├── eslint-config        # Shared linting configuration
 │   └── typescript-config    # Strict tsconfig presets
 ├── package.json

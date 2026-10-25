@@ -38,6 +38,9 @@ export default async function DashboardPage() {
             <Link href="/dashboard/questions" className="px-3 py-1.5 rounded-lg hover:text-white hover:bg-white/5 transition-colors">
               Question Bank
             </Link>
+            <Link href="/dashboard/data-rights" className="px-3 py-1.5 rounded-lg hover:text-white hover:bg-white/5 transition-colors">
+              Data Rights
+            </Link>
           </nav>
         </div>
 

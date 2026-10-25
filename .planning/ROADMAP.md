@@ -12,6 +12,7 @@ A phased journey to build a complete, production-grade GhostPilot clone in a Tur
 - [x] **Phase 4: Real-Time AI Answer Engine & Silent Vision Problem Solver** - Stream sub-second Claude 3.5 answers with resume context and solve coding challenges from silent desktop screenshots (`desktopCapturer`).
 - [x] **Phase 5: 100% Free Architecture — Resume Vault, Local Offline Whisper STT & Web Voice AI Interviewer** - Implement resume vault with PDF/DOCX text extraction, replace cloud Deepgram with local offline Whisper STT (`@huggingface/transformers`), remove all Razorpay/billing paywalls for 100% free unlimited access, and build the free Voice AI Mock Interviewer simulator with post-call analytics and question bank.
 - [x] **Phase 6: Hardening, Packaging, Stealth Verification & Automated Test Suites** - Neutral executable packaging (`SystemAudioHelper`), strict TypeScript, Vitest unit tests, and Playwright E2E anti-detection validation.
+- [ ] **Phase 7: IntervieHire Feature Adoption & Docs Overhaul** - Port resume identity extraction, question bank tagging, speech metrics, waiting room tech check, proctoring fair-play simulation, and self-serve data rights portal from IntervieHire reference, accompanied by an extensive documentation overhaul.
 
 > **Milestone v1.0 Shipped & Archived:** See full historical details in [.planning/milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md)
 
@@ -119,10 +120,29 @@ Plans:
 - [x] 06-02: Full automated test suite — run all 5 desktop CJS suites, add Vitest unit tests for `apps/web` API logic, extend Playwright E2E tests for new Phase 5 routes, and achieve zero TypeScript/lint errors.
 - [x] 06-03: Desktop installer packaging (`electron-builder` NSIS `.exe` + `.dmg`, `SystemAudioHelper` branding, Electron fuse hardening, macOS entitlements) + Vercel deployment config (`vercel.json`, `/api/health`, `.env.example`) + root `README.md`.
 
+### Phase 7: IntervieHire Feature Adoption & Docs Overhaul
+**Goal**: Port high-value features from the IntervieHire reference project (resume identity extraction, question bank tagging, speech metrics, waiting room tech check, proctoring fair-play simulation, and self-serve data rights portal) and overhaul all documentation to match the current Groq + unpdf + 100% free architecture.
+**Mode:** mvp
+**Depends on**: Phase 6
+**Requirements**: PORT-01, PORT-02, PORT-03, PORT-04, DOCS-01
+**Success Criteria**:
+  1. All project documentation accurately reflects Groq SDK, `unpdf`, local Whisper, and zero-cost architecture with zero stale references.
+  2. Uploaded resumes extract candidate contact info, LinkedIn, and experience years via regex and showcase identity badges on the Document Vault.
+  3. Pre-interview Waiting Room provides mic/camera checks and room walkthrough before mock sessions start.
+  4. Speech metrics compute live WPM, filler word frequency, and delivery style classification.
+  5. Proctoring simulator detects tab switches/blur events, and candidates can self-serve export/delete data via the DPDP/GDPR Data Rights portal.
+**Plans**: 4 plans
+
+Plans:
+- [x] 07-01: Documentation Overhaul Reflecting Current Reality (`GEMINI.md`, `ROADMAP.md`, `STACK.md`, `ARCHITECTURE.md`, `README.md`).
+- [x] 07-02: Resume Identity Extraction (`resumeIdentity.ts`, vault badges) & Question Bank Tagging (`questionBank.ts`).
+- [x] 07-03: Speech Metrics (`useSpeechMetrics.ts`), AI Tone Heuristics (`heuristics.ts`), and Waiting Room UI (`WaitingRoom.tsx`).
+- [x] 07-04: Proctoring Fair-Play Simulator (`useProctoring.ts`) & Self-Serve Data Rights Portal (`/dashboard/data-rights`).
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -132,3 +152,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 4. Real-Time AI Answer Engine & Silent Vision Problem Solver | 3/3 | Complete | 2026-10-25 |
 | 5. 100% Free Architecture — Resume Vault & Local Whisper STT | 3/3 | Complete | 2026-10-25 |
 | 6. Hardening, Packaging, Stealth Verification & Automated Test Suites | 3/3 | Complete | 2026-10-25 |
+| 7. IntervieHire Feature Adoption & Docs Overhaul | 4/4 | Complete | 2026-10-25 |
+

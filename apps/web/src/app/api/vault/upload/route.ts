@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { extractTextFromBuffer } from '@/lib/extractor';
+import { extractResumeIdentity } from '@/lib/resumeIdentity';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -51,6 +52,9 @@ export async function POST(req: NextRequest) {
 
     // Extract raw text server-side
     const extracted = await extractTextFromBuffer(buffer, mimeType, fileName);
+
+    // Extract resume identity (name, email, phone, linkedin, experience years)
+    const identity = extractResumeIdentity(extracted.text, fileName);
 
     const storagePath = `${userId}/${Date.now()}_${fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
 
@@ -104,6 +108,7 @@ export async function POST(req: NextRequest) {
         charCount: extracted.charCount,
         wordCount: extracted.wordCount,
       },
+      identity,
       targetRole: targetRole || null,
       customInstructions: customInstructions || null,
     };

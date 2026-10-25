@@ -17,7 +17,13 @@ import {
   Eye,
   Settings,
   ShieldCheck,
+  User,
+  Mail,
+  Phone,
+  Linkedin,
+  Briefcase,
 } from 'lucide-react';
+import { extractResumeIdentity, ResumeIdentityResult } from '@/lib/resumeIdentity';
 
 interface VaultDocument {
   id: string;
@@ -28,6 +34,7 @@ interface VaultDocument {
   createdAt: string;
   charCount?: number;
   wordCount?: number;
+  identity?: ResumeIdentityResult;
 }
 
 export default function VaultPage() {
@@ -64,15 +71,17 @@ export default function VaultPage() {
       .then((res) => res.json())
       .then((data) => {
         if (data.hasActiveResume && data.document) {
+          const extractedText = data.extractedText || '';
           const doc: VaultDocument = {
             id: data.document.id,
             name: data.document.name,
             filePath: data.document.filePath,
             fileType: data.document.fileType,
-            extractedText: data.extractedText || '',
+            extractedText,
             createdAt: data.document.createdAt,
-            charCount: (data.extractedText || '').length,
-            wordCount: (data.extractedText || '').split(/\s+/).filter(Boolean).length,
+            charCount: extractedText.length,
+            wordCount: extractedText.split(/\s+/).filter(Boolean).length,
+            identity: extractResumeIdentity(extractedText, data.document.name),
           };
           setDocuments([doc]);
           setActiveDocId(doc.id);
@@ -143,15 +152,17 @@ export default function VaultPage() {
         throw new Error(result.error || 'Upload failed');
       }
 
+      const extractedText = result.document.extractedText || result.document.extracted_text || '';
       const newDoc: VaultDocument = {
         id: result.document.id,
         name: result.document.name,
         filePath: result.document.filePath || result.document.file_path,
         fileType: result.document.fileType || result.document.file_type,
-        extractedText: result.document.extractedText || result.document.extracted_text || '',
+        extractedText,
         createdAt: result.document.createdAt || result.document.created_at || new Date().toISOString(),
-        charCount: result.stats?.charCount || 0,
-        wordCount: result.stats?.wordCount || 0,
+        charCount: result.stats?.charCount || extractedText.length,
+        wordCount: result.stats?.wordCount || extractedText.split(/\s+/).filter(Boolean).length,
+        identity: result.identity || extractResumeIdentity(extractedText, file.name),
       };
 
       setDocuments((prev) => [newDoc, ...prev.filter((d) => d.id !== newDoc.id)]);
@@ -387,6 +398,43 @@ export default function VaultPage() {
                           </button>
                         </div>
                       </div>
+
+                      {/* Resume Identity Extraction Card */}
+                      {doc.identity && (doc.identity.name || doc.identity.email || doc.identity.experienceYears !== null) && (
+                        <div className="mx-5 mb-4 p-3.5 rounded-xl border border-white/10 bg-white/[0.02] flex flex-wrap items-center gap-4 text-xs">
+                          {doc.identity.name && (
+                            <div className="flex items-center gap-1.5 text-zinc-200">
+                              <User className="h-3.5 w-3.5 text-emerald-400" />
+                              <span className="font-semibold">{doc.identity.name}</span>
+                              <span className="text-[10px] text-zinc-500 font-mono">({doc.identity.source})</span>
+                            </div>
+                          )}
+                          {doc.identity.email && (
+                            <div className="flex items-center gap-1.5 text-zinc-400">
+                              <Mail className="h-3.5 w-3.5 text-blue-400" />
+                              <span className="font-mono text-[11px]">{doc.identity.email}</span>
+                            </div>
+                          )}
+                          {doc.identity.phone && (
+                            <div className="flex items-center gap-1.5 text-zinc-400">
+                              <Phone className="h-3.5 w-3.5 text-amber-400" />
+                              <span className="font-mono text-[11px]">{doc.identity.phone}</span>
+                            </div>
+                          )}
+                          {doc.identity.linkedin && (
+                            <div className="flex items-center gap-1.5 text-zinc-400">
+                              <Linkedin className="h-3.5 w-3.5 text-sky-400" />
+                              <span className="font-mono text-[11px] truncate max-w-[150px]">{doc.identity.linkedin}</span>
+                            </div>
+                          )}
+                          {doc.identity.experienceYears !== null && (
+                            <div className="flex items-center gap-1.5 text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-lg text-[11px]">
+                              <Briefcase className="h-3 w-3 text-emerald-400" />
+                              <span>{doc.identity.experienceSummary}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                       {/* Expandable Extracted Text Preview */}
                       {isExpanded && (
