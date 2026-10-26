@@ -70,10 +70,10 @@ export class AudioCaptureService {
       this.micStream = null;
     }
 
-    // Attempt preferred vocal constraints with autoGainControl
+    // Proven candidate microphone constraints matching IntervieHire configuration
     const audioConstraints: MediaTrackConstraints = {
-      echoCancellation: false,
-      noiseSuppression: false,
+      echoCancellation: true,
+      noiseSuppression: true,
       autoGainControl: true,
     };
     if (deviceId && deviceId !== 'default') {
@@ -95,14 +95,25 @@ export class AudioCaptureService {
       });
     }
 
+    if (typeof window !== 'undefined' && window.electronAPI?.ensureMicUnmuted) {
+      window.electronAPI.ensureMicUnmuted().catch(() => {});
+    }
+
     const audioTrack = stream.getAudioTracks()[0];
     if (audioTrack) {
       audioTrack.enabled = true;
       const settings = audioTrack.getSettings();
       console.log(`[AudioCapture] Candidate microphone active: "${audioTrack.label}" (id: ${audioTrack.id}, readyState: ${audioTrack.readyState}, muted: ${audioTrack.muted}, channels: ${settings.channelCount}, sampleRate: ${settings.sampleRate})`);
 
+      if (audioTrack.muted && typeof window !== 'undefined' && window.electronAPI?.ensureMicUnmuted) {
+        window.electronAPI.ensureMicUnmuted().catch(() => {});
+      }
+
       audioTrack.onmute = () => {
-        console.warn(`[AudioCapture] Microphone track was MUTED by system/driver: "${audioTrack.label}"`);
+        console.warn(`[AudioCapture] Microphone track was MUTED by system/driver: "${audioTrack.label}" - re-triggering Windows unmuter.`);
+        if (typeof window !== 'undefined' && window.electronAPI?.ensureMicUnmuted) {
+          window.electronAPI.ensureMicUnmuted().catch(() => {});
+        }
       };
       audioTrack.onunmute = () => {
         console.log(`[AudioCapture] Microphone track UNMUTED: "${audioTrack.label}"`);

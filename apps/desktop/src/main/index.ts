@@ -7,6 +7,7 @@ import { app, ipcMain, session, desktopCapturer } from 'electron';
 import { registerCustomProtocol, handleDeepLinkUrl } from './protocol';
 import { HUDWindowManager } from './hud';
 import { registerGlobalShortcuts } from './shortcuts';
+import { ensureWindowsMicUnmuted } from './windowsAudio';
 
 logInfo(`[Main] Process starting. PID: ${process.pid}, Exec: "${process.execPath}", Argv:`, process.argv);
 
@@ -95,6 +96,13 @@ if (!gotTheLock) {
 
     ipcMain.handle('app:version', () => app.getVersion());
     ipcMain.handle('app:get-user-data-path', () => app.getPath('userData'));
+    ipcMain.handle('system:ensure-mic-unmuted', () => {
+      ensureWindowsMicUnmuted();
+      return true;
+    });
+
+    // Programmatically ensure Windows microphone is not muted and volume is healthy
+    ensureWindowsMicUnmuted();
 
     // Check cold-start deep link on Windows
     const coldStartUrl = process.argv.find((arg) => arg.startsWith('copilot://'));

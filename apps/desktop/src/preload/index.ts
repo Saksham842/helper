@@ -15,9 +15,11 @@ export interface ElectronAPI {
   onHUDStateChange: (callback: (state: HUDState) => void) => () => void;
   onHotkeyPressed: (callback: (action: string) => void) => () => void;
   captureSilentScreenshot: () => Promise<string>;
+  ensureMicUnmuted: () => Promise<boolean>;
 }
 
 const api: ElectronAPI = {
+  ensureMicUnmuted: () => ipcRenderer.invoke('system:ensure-mic-unmuted'),
   onAuthTokenReceived: (callback) => {
     const subscription = (_event: any, payload: any) => callback(payload);
     ipcRenderer.on('auth:token-received', subscription);
