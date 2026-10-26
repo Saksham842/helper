@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { audioCaptureService } from '../services/audioCapture';
+import { audioCaptureService, AudioDevice } from '../services/audioCapture';
 import { audioMultiplexer, AudioLevels } from '../services/audioMultiplexer';
 import { localWhisperClient, TranscriptMessage, LocalSTTStatus } from '../services/localWhisperClient';
 import {
@@ -23,10 +23,23 @@ export const TranscriptFeed: React.FC = () => {
     candidateLevel: 0,
   });
 
+  const [microphones, setMicrophones] = useState<AudioDevice[]>([]);
+  const [selectedMicId, setSelectedMicId] = useState<string>(
+    () => localStorage.getItem('ghostpilot_selected_mic') || ''
+  );
+
   const [messages, setMessages] = useState<TranscriptMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Enumerate microphones
+    audioCaptureService.getMicrophones().then((devices) => {
+      setMicrophones(devices);
+      if (devices.length > 0 && !selectedMicId) {
+        setSelectedMicId(devices[0].deviceId);
+      }
+    });
+
     // Subscribe to local Whisper transcript events
     const unsubTranscript = localWhisperClient.onTranscript((msg) => {
       setMessages((prev) => [...prev, msg]);
@@ -61,14 +74,34 @@ export const TranscriptFeed: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const handleMicChange = async (micId: string) => {
+    setSelectedMicId(micId);
+    localStorage.setItem('ghostpilot_selected_mic', micId);
+    if (isListening) {
+      try {
+        const loopbackStream = await audioCaptureService.startLoopbackCapture();
+        const micStream = await audioCaptureService.startMicrophoneCapture(micId);
+        audioMultiplexer.stop();
+        await audioMultiplexer.start(loopbackStream, micStream);
+      } catch (err: any) {
+        console.error('Failed to switch microphone:', err);
+      }
+    }
+  };
+
   const startListening = async () => {
     try {
       setStatusError(null);
       // 1. Capture system loopback audio (Interviewer)
       const loopbackStream = await audioCaptureService.startLoopbackCapture();
 
-      // 2. Capture microphone audio (Candidate)
-      const micStream = await audioCaptureService.startMicrophoneCapture();
+      // 2. Capture microphone audio (Candidate) with selected device
+      const micStream = await audioCaptureService.startMicrophoneCapture(selectedMicId || undefined);
+
+      // Refresh microphones after permission is granted so device labels are visible
+      audioCaptureService.getMicrophones().then((devices) => {
+        if (devices.length > 0) setMicrophones(devices);
+      });
 
       // 3. Initialize local Whisper transcriber
       await localWhisperClient.initialize();
@@ -274,7 +307,33 @@ export const TranscriptFeed: React.FC = () => {
                 <Mic size={11} />
                 <span>Candidate (Ch 1)</span>
               </div>
-              <span style={{ fontSize: '9px', color: '#a1a1aa' }}>Microphone</span>
+              {microphones.length > 0 ? (
+                <select
+                  value={selectedMicId}
+                  onChange={(e) => handleMicChange(e.target.value)}
+                  style={{
+                    fontSize: '9px',
+                    color: '#34d399',
+                    background: 'rgba(16, 185, 129, 0.12)',
+                    border: '1px solid rgba(16, 185, 129, 0.3)',
+                    borderRadius: '4px',
+                    padding: '1px 3px',
+                    maxWidth: '115px',
+                    outline: 'none',
+                    cursor: 'pointer',
+                  }}
+                  title="Select Microphone Device"
+                >
+                  <option value="" style={{ background: '#111827', color: '#fff' }}>Default Mic</option>
+                  {microphones.map((m) => (
+                    <option key={m.deviceId} value={m.deviceId} style={{ background: '#111827', color: '#fff' }}>
+                      {m.label.length > 18 ? m.label.slice(0, 18) + '…' : m.label}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <span style={{ fontSize: '9px', color: '#a1a1aa' }}>Microphone</span>
+              )}
             </div>
             <div
               style={{

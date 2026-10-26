@@ -93,9 +93,9 @@ export class AIAnswerEngine {
         },
         body: JSON.stringify({
           model:
-            (import.meta as any).env?.VITE_GROQ_MODEL || 'llama-3.3-70b-versatile',
-          max_tokens: 600,
-          temperature: 0.2,
+            (import.meta as any).env?.VITE_GROQ_MODEL || 'qwen/qwen3.8-27b',
+          max_tokens: 1500,
+          temperature: 0.1,
           stream: true,
           messages: [
             { role: 'system', content: systemPrompt },
@@ -106,7 +106,7 @@ export class AIAnswerEngine {
       });
 
       if (!response.ok) {
-        console.warn(`[AIAnswerEngine] Primary model failed (${response.status}), retrying with fast fallback...`);
+        console.warn(`[AIAnswerEngine] Primary model failed (${response.status}), retrying with fallback...`);
         response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -114,9 +114,9 @@ export class AIAnswerEngine {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'llama-3.1-8b-instant',
-            max_tokens: 600,
-            temperature: 0.2,
+            model: 'openai/gpt-oss-120b',
+            max_tokens: 1500,
+            temperature: 0.1,
             stream: true,
             messages: [
               { role: 'system', content: systemPrompt },
@@ -156,7 +156,8 @@ export class AIAnswerEngine {
 
             try {
               const eventData = JSON.parse(dataStr);
-              const token = eventData.choices?.[0]?.delta?.content;
+              const delta = eventData.choices?.[0]?.delta;
+              const token = delta?.content ?? delta?.reasoning;
               if (token) {
                 this.currentAnswer += token;
                 this.onTokenCallbacks.forEach((cb) => cb(token, this.currentAnswer));

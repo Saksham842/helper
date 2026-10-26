@@ -72,7 +72,10 @@ export class VADChunker {
   }
 
   private processChannelFrame(channel: 0 | 1, samples: number[], rms: number): void {
-    const isSpeaking = rms >= this.speechThreshold;
+    // Channel 0 (Interviewer loopback): 0.005
+    // Channel 1 (Candidate mic): 0.002 for high sensitivity to natural/quiet microphone speech
+    const threshold = channel === 0 ? this.speechThreshold : 0.002;
+    const isSpeaking = rms >= threshold;
 
     if (channel === 0) {
       if (isSpeaking) {

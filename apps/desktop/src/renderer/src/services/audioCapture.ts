@@ -57,16 +57,25 @@ export class AudioCaptureService {
 
   public async startMicrophoneCapture(deviceId?: string): Promise<MediaStream> {
     if (this.micStream && this.micStream.active) {
-      return this.micStream;
+      if (!deviceId) return this.micStream;
+      const currentTrack = this.micStream.getAudioTracks()[0];
+      const settings = currentTrack?.getSettings();
+      if (settings?.deviceId === deviceId) {
+        return this.micStream;
+      }
+      // Switch to newly selected mic
+      this.micStream.getTracks().forEach((t) => t.stop());
+      this.micStream = null;
     }
 
-    // Use flexible constraints without hardcoded sampleRate to prevent Windows WASAPI driver rejection
+    // Flexible constraints with autoGainControl to boost microphone levels automatically
     const constraints: MediaStreamConstraints = {
       audio: deviceId
-        ? { deviceId: { exact: deviceId } }
+        ? {
+            deviceId: { exact: deviceId },
+            autoGainControl: true,
+          }
         : {
-            echoCancellation: false,
-            noiseSuppression: false,
             autoGainControl: true,
           },
       video: false,

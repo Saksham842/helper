@@ -90,10 +90,11 @@ export class AudioMultiplexer {
     this.loopbackMonoGain.channelCountMode = 'explicit';
     this.loopbackSource.connect(this.loopbackMonoGain);
 
-    // Pre-mix mic to mono channel 1
+    // Pre-mix mic to mono channel 1 with 2.5x amplification so candidate speech is loud & clear
     this.micMonoGain = this.audioContext.createGain();
     this.micMonoGain.channelCount = 1;
     this.micMonoGain.channelCountMode = 'explicit';
+    this.micMonoGain.gain.value = 2.5;
     this.micSource.connect(this.micMonoGain);
 
     // 2-channel merger node:

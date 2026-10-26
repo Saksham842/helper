@@ -8,8 +8,8 @@ export interface PromptContext {
 
 export class PromptEngine {
   private context: PromptContext = {
-    targetRole: 'Senior Software Engineer',
-    customInstructions: 'Provide 3 high-impact bullet points. Use STAR method when describing projects. Bold key technical keywords.',
+    targetRole: 'Software Engineer',
+    customInstructions: 'Directly answer and solve what the interviewer is asking. Provide working code and complexity for DSA/coding problems, architecture for system design, and deep technical clarity for concepts.',
   };
 
   public setContext(newContext: Partial<PromptContext>): void {
@@ -24,16 +24,36 @@ export class PromptEngine {
   }
 
   public buildSystemPrompt(): string {
-    return `You are GhostPilot, an undetectable, ultra-low latency real-time interview copilot.
-The candidate is actively speaking to an interviewer on a live call.
-Your output will be rendered on a stealth HUD that the candidate glances at while speaking.
+    return `You are GhostPilot, an expert real-time technical interview copilot.
+The candidate is on a live interview call. Your output is rendered on an overlay HUD that the candidate glances at.
 
-CRITICAL INSTRUCTIONS:
-1. Ultra-Scannable: Format answers in 3-4 concise bullet points maximum.
-2. Bold Key Terms: Bold core technical keywords, metrics, or architecture patterns (**like this**).
-3. First-Person Voice: Speak from the candidate's perspective ("I implemented...", "In my past work with...").
-4. Tailor to Resume: Weave in relevant technologies and achievements from the candidate's resume context.
-5. No Fluff: Zero introductory or concluding remarks. Jump straight to the bullets.`;
+CRITICAL INSTRUCTIONS BY QUESTION TYPE:
+
+1. CODING / ALGORITHMS / LEETCODE / DSA:
+- Immediately state the optimal algorithmic approach (e.g., Greedy with Custom Comparator, Two Pointers, Monotonic Stack, DP, BFS/DFS).
+- State Time Complexity: O(...) and Space Complexity: O(...).
+- Provide the EXACT, CLEAN, PRODUCTION-READY CODE solving the problem (in Python or language discussed).
+- Provide a 2-3 line dry-run walkthrough on the interviewer's specific example.
+- List 2 critical edge cases to mention to the interviewer.
+
+2. SYSTEM DESIGN & ARCHITECTURE:
+- Outline the High-Level Architecture (Core services, API contracts, data flow).
+- Specify Data Storage & Caching (PostgreSQL, Redis, Kafka, Partitioning keys).
+- Address Scalability & Fault Tolerance (Load balancers, rate limiters, replication, circuit breakers).
+
+3. TECHNICAL CONCEPTS & SYSTEM INTERNALS:
+- Give a crisp 1-sentence definition.
+- Explain how it works under the hood (memory, concurrency, runtime lifecycle).
+- Give a quick code snippet or real-world example demonstrating the concept.
+
+4. BEHAVIORAL / EXPERIENCE (ONLY if specifically asked about past personal experience):
+- Structure with STAR (Situation, Task, Action, Result) with measurable metrics.
+
+FORMATTING & STYLE:
+- Use clean Markdown with headers (\`### Approach\`, \`### Complexity\`, \`### Solution\`).
+- Use fenced code blocks (\`\`\`python ... \`\`\`) with clear syntax.
+- Bold key terms (**like this**).
+- Jump straight into the solution with zero introductory filler ("Sure! Here is the answer").`;
   }
 
   public buildUserPrompt(question: string, history: TranscriptMessage[] = []): string {
@@ -49,18 +69,18 @@ CRITICAL INSTRUCTIONS:
     }
 
     if (this.context.customInstructions) {
-      prompt += `Custom Instructions: ${this.context.customInstructions}\n`;
+      prompt += `Candidate Instructions: ${this.context.customInstructions}\n`;
     }
 
     if (this.context.resumeText) {
-      prompt += `\nCandidate Resume Highlights:\n${this.context.resumeText.slice(0, 10000)}\n`;
+      prompt += `\nCandidate Background Summary:\n${this.context.resumeText.slice(0, 4000)}\n`;
     }
 
     if (formattedHistory) {
-      prompt += `\nRecent Conversation Context:\n${formattedHistory}\n`;
+      prompt += `\nLive Conversation Transcript:\n${formattedHistory}\n`;
     }
 
-    prompt += `\nQuestion to Answer:\n"${question}"`;
+    prompt += `\nINTERVIEWER'S QUESTION / PROBLEM TO SOLVE:\n"${question}"\n\nProvide the complete, optimal, and thorough solution now:`;
 
     return prompt;
   }

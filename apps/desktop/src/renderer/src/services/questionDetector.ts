@@ -18,10 +18,13 @@ export class QuestionDetector {
     /\?$/,
   ];
 
-  // Affirmations and filler phrases that should not trigger question answering
+  // Affirmations, greetings, and filler phrases that should not trigger question answering
   private readonly fillerPhrases: RegExp[] = [
     /^(yeah|yes|yep|sure|okay|ok|right|cool|got it|sounds good|mhm|understood|alright)\.?$/i,
-    /^(thank you|thanks|no problem|awesome)\.?$/i,
+    /^(thank you|thanks|no problem|awesome|great)\.?$/i,
+    /^(good (morning|afternoon|evening|day))\.?$/i,
+    /^(how are you|how're you|how are you doing|how is it going)\??$/i,
+    /^(hello|hi|hey|welcome back|welcome)\.?$/i,
   ];
 
   public onQuestion(callback: QuestionDetectedCallback): () => void {
@@ -58,7 +61,19 @@ export class QuestionDetector {
       }
 
       this.debounceTimer = setTimeout(() => {
-        this.emitQuestion(text);
+        // Aggregate recent contiguous interviewer utterances so the full question context is preserved
+        const interviewerChunks: string[] = [];
+        for (let i = this.recentMessages.length - 1; i >= 0; i--) {
+          const m = this.recentMessages[i];
+          if (m.speaker === 'interviewer') {
+            interviewerChunks.unshift(m.text.trim());
+            if (interviewerChunks.length >= 4) break;
+          } else {
+            break;
+          }
+        }
+        const fullQuestion = interviewerChunks.join(' ') || text;
+        this.emitQuestion(fullQuestion);
       }, this.debounceDelayMs);
     }
   }
@@ -69,11 +84,20 @@ export class QuestionDetector {
       this.debounceTimer = null;
     }
 
-    // If explicit question provided, use it; otherwise extract latest interviewer utterance or context
+    // If explicit question provided, use it; otherwise extract recent interviewer context
     let textToAsk = questionText?.trim();
     if (!textToAsk) {
-      const lastInterviewerMsg = [...this.recentMessages].reverse().find((m) => m.speaker === 'interviewer');
-      textToAsk = lastInterviewerMsg ? lastInterviewerMsg.text : 'Provide key suggestions based on current conversation.';
+      const interviewerChunks: string[] = [];
+      for (let i = this.recentMessages.length - 1; i >= 0; i--) {
+        const m = this.recentMessages[i];
+        if (m.speaker === 'interviewer') {
+          interviewerChunks.unshift(m.text.trim());
+          if (interviewerChunks.length >= 4) break;
+        } else {
+          break;
+        }
+      }
+      textToAsk = interviewerChunks.join(' ') || 'Provide the solution and key points for the current interview topic.';
     }
 
     this.emitQuestion(textToAsk);
@@ -81,12 +105,15 @@ export class QuestionDetector {
 
   public isLikelyQuestion(text: string): boolean {
     if (text.length < 5) return false;
+    // Don't treat standalone greetings as questions
+    if (/^(how are you|how're you|how is it going)\??$/i.test(text.trim())) return false;
     if (text.includes('?')) return true;
     return this.questionKeywords.some((pattern) => pattern.test(text));
   }
 
   public isFiller(text: string): boolean {
-    return this.fillerPhrases.some((pattern) => pattern.test(text.trim()));
+    const trimmed = text.trim();
+    return this.fillerPhrases.some((pattern) => pattern.test(trimmed));
   }
 
   public getRecentContext(): TranscriptMessage[] {
