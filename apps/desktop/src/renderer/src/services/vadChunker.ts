@@ -9,9 +9,9 @@ export type SpeechSegmentCallback = (segment: SpeechSegment) => void;
 
 export class VADChunker {
   private sampleRate: number = 16000;
-  private speechThreshold: number = 0.012;
-  private silenceFramesLimit: number = 10; // ~600ms of consecutive silence marks end of utterance
-  private maxUtteranceSamples: number = 16000 * 15; // Max 15s per chunk
+  private speechThreshold: number = 0.005; // Sensitive to real speech & video audio
+  private silenceFramesLimit: number = 8; // ~400ms of silence marks end of utterance
+  private maxUtteranceSamples: number = 16000 * 12; // Max 12s per chunk
 
   // State for Channel 0 (Interviewer)
   private ch0Accumulator: number[] = [];
@@ -25,7 +25,7 @@ export class VADChunker {
 
   private onSpeechSegmentCallbacks: SpeechSegmentCallback[] = [];
 
-  constructor(sampleRate: number = 16000, speechThreshold: number = 0.012) {
+  constructor(sampleRate: number = 16000, speechThreshold: number = 0.005) {
     this.sampleRate = sampleRate;
     this.speechThreshold = speechThreshold;
   }
@@ -112,8 +112,8 @@ export class VADChunker {
   private flushSegment(channel: 0 | 1): void {
     const rawSamples = channel === 0 ? this.ch0Accumulator : this.ch1Accumulator;
 
-    // Minimum 400ms of audio required (~6400 samples at 16kHz)
-    if (rawSamples.length >= 6400) {
+    // Minimum 300ms of audio required (~4800 samples at 16kHz)
+    if (rawSamples.length >= 4800) {
       const float32 = new Float32Array(rawSamples);
       const durationMs = Math.round((rawSamples.length / this.sampleRate) * 1000);
 

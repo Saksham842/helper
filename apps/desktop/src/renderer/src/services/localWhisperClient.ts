@@ -199,6 +199,12 @@ export class LocalWhisperClient {
             if (res.ok) {
               const data = await res.json();
               text = data?.text?.trim() || '';
+              if (text) {
+                console.log(`[LocalWhisper] Groq STT transcribed (${segment.channel === 0 ? 'Interviewer' : 'Candidate'}):`, text);
+              }
+            } else {
+              const errBody = await res.text();
+              console.warn('[LocalWhisper] Groq STT HTTP', res.status, errBody);
             }
           } catch (groqSttErr) {
             console.warn('[LocalWhisper] Groq cloud STT skipped or offline, falling back to on-device model:', groqSttErr);

@@ -35,17 +35,20 @@ export class AudioCaptureService {
         video: true,
       });
 
-      // Terminate video track immediately to preserve CPU/GPU memory
-      displayStream.getVideoTracks().forEach((track) => track.stop());
+      // DO NOT call track.stop() on video tracks!
+      // In Chromium, stopping the video track terminates the entire desktop capture session, which destroys loopback audio!
+      // Instead, set enabled = false to disable rendering and save 100% GPU/CPU while keeping the loopback audio stream alive.
+      displayStream.getVideoTracks().forEach((track) => {
+        track.enabled = false;
+      });
 
       const audioTracks = displayStream.getAudioTracks();
       if (audioTracks.length === 0) {
         throw new Error('No system loopback audio track received from getDisplayMedia');
       }
 
-      const audioOnlyStream = new MediaStream(audioTracks);
-      this.loopbackStream = audioOnlyStream;
-      return audioOnlyStream;
+      this.loopbackStream = displayStream;
+      return displayStream;
     } catch (err) {
       console.error('[AudioCapture] Failed to capture system loopback audio:', err);
       throw err;
@@ -57,14 +60,15 @@ export class AudioCaptureService {
       return this.micStream;
     }
 
+    // Use flexible constraints without hardcoded sampleRate to prevent Windows WASAPI driver rejection
     const constraints: MediaStreamConstraints = {
-      audio: {
-        deviceId: deviceId ? { exact: deviceId } : undefined,
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true,
-        sampleRate: 16000,
-      },
+      audio: deviceId
+        ? { deviceId: { exact: deviceId } }
+        : {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: true,
+          },
       video: false,
     };
 
@@ -89,9 +93,10 @@ export class AudioCaptureService {
     for (let i = 0; i < samples.length; i++) {
       sum += samples[i] * samples[i];
     }
-    const rms = Math.sqrt(sum / samples.length);
-    // Normalize into 0.0 - 1.0 range
-    return Math.min(1.0, rms * 5);
+    const rms = Math.sqrt(sum / (samples.length || 1));
+    if (rms < 0.0003) return 0;
+    // Square root curve maps quiet speech (0.004) -> ~20%, normal speech (0.02) -> ~45%, loud (0.06+) -> ~80%
+    return Math.min(1.0, Math.sqrt(rms) * 3.2);
   }
 }
 
