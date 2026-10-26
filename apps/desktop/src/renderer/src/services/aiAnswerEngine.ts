@@ -1,5 +1,5 @@
 import { promptEngine } from './promptEngine';
-import type { TranscriptMessage } from './deepgramLiveClient';
+import type { TranscriptMessage } from './localWhisperClient';
 
 export type TokenCallback = (token: string, fullText: string) => void;
 export type CompletionCallback = (fullAnswer: string) => void;
@@ -93,7 +93,7 @@ export class AIAnswerEngine {
         },
         body: JSON.stringify({
           model:
-            (import.meta as any).env?.VITE_GROQ_MODEL || 'openai/gpt-oss-120b',
+            (import.meta as any).env?.VITE_GROQ_MODEL || 'llama-3.3-70b-versatile',
           max_tokens: 600,
           temperature: 0.2,
           stream: true,
@@ -114,7 +114,7 @@ export class AIAnswerEngine {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'openai/gpt-oss-20b',
+            model: 'llama-3.1-8b-instant',
             max_tokens: 600,
             temperature: 0.2,
             stream: true,

@@ -1,4 +1,4 @@
-import type { TranscriptMessage } from './deepgramLiveClient';
+import type { TranscriptMessage } from './localWhisperClient';
 
 export type QuestionDetectedCallback = (question: string, recentContext: TranscriptMessage[]) => void;
 
