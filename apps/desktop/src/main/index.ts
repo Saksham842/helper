@@ -115,7 +115,7 @@ if (!gotTheLock) {
 
   app.on('window-all-closed', () => {
     logInfo('[Main] window-all-closed event received.');
-    if (process.platform !== 'darwin') {
+    if (process.platform !== 'darwin' && !hudManager?.isRecovering()) {
       logInfo('[Main] Quitting application on non-macOS platform.');
       app.quit();
     }

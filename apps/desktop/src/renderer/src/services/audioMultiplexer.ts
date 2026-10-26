@@ -98,9 +98,12 @@ export class AudioMultiplexer {
       this.onAudioDataCallbacks.forEach((cb) => cb(rawBuffer));
     };
 
-    // Connect processor to destination to keep audio processing pipeline active
+    // Route through a zero-gain node to keep the processor pipeline active without echoing loopback audio into speakers
+    const silentGain = this.audioContext.createGain();
+    silentGain.gain.value = 0;
     this.mergerNode.connect(this.processorNode);
-    this.processorNode.connect(this.audioContext.destination);
+    this.processorNode.connect(silentGain);
+    silentGain.connect(this.audioContext.destination);
 
     this.isRunning = true;
   }

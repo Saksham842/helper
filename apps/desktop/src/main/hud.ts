@@ -13,8 +13,14 @@ export class HUDWindowManager {
     isContentProtected: false,
   };
 
+  private isAutoRecovering: boolean = false;
+
   constructor() {
     this.setupIPCHandlers();
+  }
+
+  public isRecovering(): boolean {
+    return this.isAutoRecovering;
   }
 
   public getWindow(): BrowserWindow | null {
@@ -29,6 +35,7 @@ export class HUDWindowManager {
   }
 
   public createWindow(): BrowserWindow {
+    this.isAutoRecovering = false;
     // Hide macOS dock icon for complete stealth
     if (process.platform === 'darwin' && app.dock) {
       try {
@@ -143,6 +150,7 @@ export class HUDWindowManager {
 
     this.window.webContents.on('render-process-gone', (_event, details) => {
       logError(`[Renderer] render-process-gone: reason=${details.reason}, exitCode=${details.exitCode}`);
+      this.isAutoRecovering = true;
       try {
         if (this.window && !this.window.isDestroyed()) {
           this.window.destroy();
@@ -288,16 +296,48 @@ export class HUDWindowManager {
 
     ipcMain.handle('screen:capture-silent', async () => {
       try {
+        const cursorPoint = screen.getCursorScreenPoint();
+        const activeDisplay = screen.getDisplayNearestPoint(cursorPoint);
+        const allDisplays = screen.getAllDisplays();
+        const activeIndex = allDisplays.findIndex((d) => d.id === activeDisplay.id);
+
+        const captureWidth = Math.min(1920, activeDisplay.bounds.width || 1920);
+        const captureHeight = Math.min(1080, activeDisplay.bounds.height || 1080);
+
         const sources = await desktopCapturer.getSources({
           types: ['screen'],
-          thumbnailSize: { width: 1920, height: 1080 },
+          thumbnailSize: { width: captureWidth, height: captureHeight },
         });
-        if (sources.length > 0) {
-          return sources[0].thumbnail.toDataURL();
+
+        if (sources.length === 0) {
+          throw new Error('No screen sources available for silent capture');
         }
-        throw new Error('No screen sources available for silent capture');
+
+        // Target the display where the candidate is actively working
+        let selectedSource = sources[0];
+        if (activeIndex >= 0 && sources[activeIndex]) {
+          selectedSource = sources[activeIndex];
+        }
+
+        if (selectedSource.thumbnail.isEmpty()) {
+          logWarn('[HUD] Screen capture thumbnail was empty, searching fallback screen');
+          for (const s of sources) {
+            if (!s.thumbnail.isEmpty()) {
+              selectedSource = s;
+              break;
+            }
+          }
+        }
+
+        // High-quality JPEG drastically reduces Groq base64 token footprint and prevents 429 rate limit
+        const jpegBuffer = selectedSource.thumbnail.toJPEG(85);
+        if (jpegBuffer && jpegBuffer.length > 0) {
+          return `data:image/jpeg;base64,${jpegBuffer.toString('base64')}`;
+        }
+
+        return selectedSource.thumbnail.toDataURL();
       } catch (err: any) {
-        console.error('Silent screen capture error:', err);
+        logError('Silent screen capture error:', err);
         throw err;
       }
     });

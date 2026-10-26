@@ -70,33 +70,34 @@ export class VisionSolverService {
       // 1. Capture silent screenshot completely in-memory
       const dataUrl = await window.electronAPI.captureSilentScreenshot();
       const base64Data = dataUrl.replace(/^data:image\/\w+;base64,/, '');
+      const imageUrl = dataUrl.startsWith('data:') ? dataUrl : `data:image/jpeg;base64,${base64Data}`;
 
-      // 2. Query Groq Llama 4 Maverick Vision with streaming
-      const systemPrompt = `You are a world-champion competitive programmer and technical interview expert.
-A coding problem (LeetCode, HackerRank, CoderPad, or system diagram) is displayed on screen.
-Your job is to provide an undetectable, executive-grade solution optimized for live interviews with execution trace and complexity analysis.
-Format your response cleanly:
-### Problem
-[Problem Name & 1-sentence summary]
+      // 2. Query Groq Multimodal Vision Model with clean engineering prompt
+      const systemPrompt = `You are an expert algorithm engineer and competitive programmer.
+Your task is to analyze the coding problem visible in the provided screenshot (from LeetCode, HackerRank, Codeforces, an IDE, or an assessment platform) and provide the optimal solution in ${targetLanguage}.
+
+Format your response cleanly and strictly as follows:
+### Problem: [Problem Title / Summary]
+- **Description:** [2-3 sentences summarizing the problem, input format, and constraints]
 
 ### Complexity
 - **Time Complexity:** O(...)
 - **Space Complexity:** O(...)
 
 ### Optimal Approach
-[2-3 bullet points explaining the core pattern (e.g. Sliding Window, Monotonic Stack, Dynamic Programming)]
+- [Core algorithm & pattern, e.g., Sliding Window, Monotonic Stack, Two Pointers, Dynamic Programming, BFS/DFS]
+- [Why this approach is optimal]
 
 ### Solution (${targetLanguage})
 \`\`\`${targetLanguage.toLowerCase()}
-[Complete, production-ready, beautifully commented code]
+[Clean, production-ready, well-commented code solving the problem]
 \`\`\`
 
-### Execution Logs & Trace
-- [Step-by-step dry run on sample inputs with variable states]
+### Dry Run & Edge Cases
+- **Sample Walkthrough:** [Quick step-by-step trace on sample input]
+- **Key Edge Cases:** [Empty/null inputs, single element, negative values, boundary overflow]`;
 
-### Edge Cases
-- [Edge case 1]
-- [Edge case 2]`;
+      const userText = `Please identify and solve the coding problem visible in this screenshot in ${targetLanguage}. If code editor or problem description is shown, extract the problem specifications and output the optimal code solution.`;
 
       // Use Groq's multimodal vision model (qwen/qwen3.8-27b)
       const visionModel =
@@ -121,12 +122,12 @@ Format your response cleanly:
               content: [
                 {
                   type: 'text',
-                  text: `Analyze the coding problem on my screen and provide the optimal solution in ${targetLanguage}.`,
+                  text: userText,
                 },
                 {
                   type: 'image_url',
                   image_url: {
-                    url: `data:image/png;base64,${base64Data}`,
+                    url: imageUrl,
                   },
                 },
               ],
@@ -136,8 +137,9 @@ Format your response cleanly:
         signal: this.currentAbortController.signal,
       });
 
-      if (!response.ok) {
-        console.warn(`[VisionSolver] Primary model failed (${response.status}), retrying with fallback model...`);
+      if (!response.ok && response.status === 429) {
+        console.warn('[VisionSolver] Rate limited (429), waiting 1.5s before retrying...');
+        await new Promise((resolve) => setTimeout(resolve, 1500));
         response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -145,7 +147,7 @@ Format your response cleanly:
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'qwen/qwen3.8-27b',
+            model: visionModel,
             max_tokens: 1500,
             temperature: 0.1,
             stream: true,
@@ -156,12 +158,12 @@ Format your response cleanly:
                 content: [
                   {
                     type: 'text',
-                    text: `Analyze the coding problem on my screen and provide the optimal solution in ${targetLanguage}.`,
+                    text: userText,
                   },
                   {
                     type: 'image_url',
                     image_url: {
-                      url: `data:image/png;base64,${base64Data}`,
+                      url: imageUrl,
                     },
                   },
                 ],

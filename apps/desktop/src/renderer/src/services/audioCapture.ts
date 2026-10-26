@@ -29,37 +29,26 @@ export class AudioCaptureService {
     }
 
     try {
-      // Primary: Electron silent desktop loopback capture via chromeMediaSource
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          mandatory: {
-            chromeMediaSource: 'desktop',
-          },
-        } as any,
-        video: false,
+      // Electron loopback audio capture via getDisplayMedia + session.setDisplayMediaRequestHandler
+      const displayStream = await navigator.mediaDevices.getDisplayMedia({
+        audio: true,
+        video: true,
       });
 
-      this.loopbackStream = stream;
-      return stream;
-    } catch (primaryErr) {
-      console.warn('Direct desktop loopback getUserMedia failed, attempting getDisplayMedia fallback:', primaryErr);
-      try {
-        // Fallback: getDisplayMedia with immediate video track discard
-        const displayStream = await navigator.mediaDevices.getDisplayMedia({
-          audio: true,
-          video: { width: 1, height: 1, frameRate: 1 },
-        });
+      // Terminate video track immediately to preserve CPU/GPU memory
+      displayStream.getVideoTracks().forEach((track) => track.stop());
 
-        // Terminate dummy video track immediately to preserve CPU/memory
-        displayStream.getVideoTracks().forEach((track) => track.stop());
-
-        const audioOnlyStream = new MediaStream(displayStream.getAudioTracks());
-        this.loopbackStream = audioOnlyStream;
-        return audioOnlyStream;
-      } catch (fallbackErr) {
-        console.error('All loopback capture methods failed:', fallbackErr);
-        throw fallbackErr;
+      const audioTracks = displayStream.getAudioTracks();
+      if (audioTracks.length === 0) {
+        throw new Error('No system loopback audio track received from getDisplayMedia');
       }
+
+      const audioOnlyStream = new MediaStream(audioTracks);
+      this.loopbackStream = audioOnlyStream;
+      return audioOnlyStream;
+    } catch (err) {
+      console.error('[AudioCapture] Failed to capture system loopback audio:', err);
+      throw err;
     }
   }
 

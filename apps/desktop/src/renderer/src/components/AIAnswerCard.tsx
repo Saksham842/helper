@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { aiAnswerEngine } from '../services/aiAnswerEngine';
 import { questionDetector } from '../services/questionDetector';
+import { MarkdownView } from '../lib/markdownRenderer';
 import { Sparkles, Copy, Check, X, RefreshCw, AlertCircle, Key } from 'lucide-react';
 
 export const AIAnswerCard: React.FC = () => {
@@ -235,16 +236,22 @@ export const AIAnswerCard: React.FC = () => {
           )}
         </div>
       ) : (
-        <div
-          style={{
-            fontSize: '12px',
-            lineHeight: 1.5,
-            color: '#f4f4f5',
-            whiteSpace: 'pre-wrap',
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-          }}
-        >
-          {answer || 'Generating sub-second answer with candidate context...'}
+        <div style={{
+          maxHeight: '320px',
+          overflowY: 'auto',
+          padding: '8px 10px',
+          borderRadius: '8px',
+          background: 'rgba(0,0,0,0.3)',
+          border: '1px solid rgba(255,255,255,0.06)',
+          scrollbarWidth: 'thin',
+          scrollbarColor: 'rgba(16,185,129,0.35) transparent',
+        }}>
+          {answer
+            ? <MarkdownView md={answer} accentColor="#10b981" />
+            : <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic' }}>
+                Generating answer with candidate context…
+              </span>
+          }
         </div>
       )}
     </div>
