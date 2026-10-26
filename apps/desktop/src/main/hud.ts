@@ -64,7 +64,7 @@ export class HUDWindowManager {
       backgroundColor: '#0a0f1d',
       frame: false,
       hasShadow: true,
-      skipTaskbar: false,
+      skipTaskbar: true,
       focusable: true,
       alwaysOnTop: true,
       resizable: true,
