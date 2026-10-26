@@ -36,6 +36,7 @@ export class AudioMultiplexer {
   private loopbackSource: MediaStreamAudioSourceNode | null = null;
   private micSource: MediaStreamAudioSourceNode | null = null;
   private loopbackMonoGain: GainNode | null = null;
+  private micSplitter: ChannelSplitterNode | null = null;
   private micMonoGain: GainNode | null = null;
   private mergerNode: ChannelMergerNode | null = null;
   private processorNode: ScriptProcessorNode | null = null;
@@ -63,12 +64,10 @@ export class AudioMultiplexer {
     if (this.isRunning) return;
 
     const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    try {
-      this.audioContext = new AudioContextClass({ sampleRate: 16000 });
-    } catch {
-      console.warn('[AudioMultiplexer] Explicit sampleRate: 16000 rejected, using default system sampleRate');
-      this.audioContext = new AudioContextClass();
-    }
+    // CRITICAL: Must use native hardware sampleRate (e.g. 48000Hz or 44100Hz on Windows)
+    // Forcing { sampleRate: 16000 } on Windows causes getUserMedia MediaStreamAudioSourceNode
+    // to drop all microphone packets due to WASAPI clock mismatch!
+    this.audioContext = new AudioContextClass();
 
     if (this.audioContext.state !== 'running') {
       try {
@@ -79,23 +78,27 @@ export class AudioMultiplexer {
     }
 
     const currentRate = this.audioContext.sampleRate;
-    console.log(`[AudioMultiplexer] AudioContext started at sampleRate: ${currentRate}Hz`);
+    console.log(`[AudioMultiplexer] AudioContext started natively at ${currentRate}Hz`);
 
     this.loopbackSource = this.audioContext.createMediaStreamSource(loopbackStream);
     this.micSource = this.audioContext.createMediaStreamSource(micStream);
 
-    // Pre-mix loopback to mono channel 0 (takes stereo L+R from YouTube and mixes cleanly to 1 channel)
+    // Pre-mix loopback to mono channel 0 (takes stereo L+R from YouTube/Zoom and mixes cleanly to 1 channel)
     this.loopbackMonoGain = this.audioContext.createGain();
     this.loopbackMonoGain.channelCount = 1;
     this.loopbackMonoGain.channelCountMode = 'explicit';
     this.loopbackSource.connect(this.loopbackMonoGain);
 
-    // Pre-mix mic to mono channel 1 with 2.5x amplification so candidate speech is loud & clear
+    // For microphone (Candidate):
+    // CRITICAL: DO NOT use channelCountMode = 'explicit' on stereo laptop mic arrays (Intel Smart Sound)!
+    // Differential mic arrays use antiphase cancellation on Lid microphones. Summing (L + R) produces 0.
+    // Instead, extract Channel 0 (the primary voice capsule) with ChannelSplitterNode.
+    this.micSplitter = this.audioContext.createChannelSplitter(2);
+    this.micSource.connect(this.micSplitter);
+
     this.micMonoGain = this.audioContext.createGain();
-    this.micMonoGain.channelCount = 1;
-    this.micMonoGain.channelCountMode = 'explicit';
-    this.micMonoGain.gain.value = 2.5;
-    this.micSource.connect(this.micMonoGain);
+    this.micMonoGain.gain.value = 3.5; // 3.5x amplification boost for loud & clear candidate speech
+    this.micSplitter.connect(this.micMonoGain, 0, 0); // Connect output 0 (Channel 0) to micMonoGain
 
     // 2-channel merger node:
     // Input 0 -> Channel 0 (Left: Interviewer/Loopback)
@@ -108,6 +111,7 @@ export class AudioMultiplexer {
     const bufferSize = 2048;
     this.processorNode = this.audioContext.createScriptProcessor(bufferSize, 2, 2);
 
+    let processCounter = 0;
     this.processorNode.onaudioprocess = (event: AudioProcessingEvent) => {
       if (!this.isRunning) return;
 
@@ -124,6 +128,12 @@ export class AudioMultiplexer {
           candidateLevel: rightRMS,
         })
       );
+
+      processCounter++;
+      // Log diagnostic levels every ~3 seconds (~70 frames at bufferSize 2048 / 48kHz) or when candidate speaks
+      if (rightRMS > 0.05 || (processCounter % 70 === 0 && (leftRMS > 0.01 || rightRMS > 0.01))) {
+        console.log(`[AudioLevels] Interviewer VU: ${(leftRMS * 100).toFixed(1)}% | Candidate VU: ${(rightRMS * 100).toFixed(1)}%`);
+      }
 
       // Downsample both channels to exact 16,000 Hz for Whisper VAD & STT
       const left16k = downsampleTo16k(leftChannelRaw, currentRate);
@@ -183,6 +193,11 @@ export class AudioMultiplexer {
     if (this.loopbackMonoGain) {
       this.loopbackMonoGain.disconnect();
       this.loopbackMonoGain = null;
+    }
+
+    if (this.micSplitter) {
+      this.micSplitter.disconnect();
+      this.micSplitter = null;
     }
 
     if (this.micMonoGain) {

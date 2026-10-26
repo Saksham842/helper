@@ -160,6 +160,7 @@ export class LocalWhisperClient {
   }
 
   private enqueueSegment(segment: SpeechSegment): void {
+    console.log(`[LocalWhisper] Enqueuing ${segment.channel === 0 ? 'Interviewer' : 'Candidate'} segment (${segment.durationMs}ms, ${segment.audio.length} samples)`);
     this.queue.push(segment);
     if (!this.isProcessingQueue) {
       this.processQueue();

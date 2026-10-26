@@ -64,6 +64,10 @@ if (!gotTheLock) {
       callback(true);
     });
 
+    session.defaultSession.setPermissionCheckHandler((_webContents, _permission) => {
+      return true;
+    });
+
     session.defaultSession.setDisplayMediaRequestHandler((_request, callback) => {
       desktopCapturer.getSources({ types: ['screen'] }).then((sources) => {
         if (sources.length > 0) {

@@ -73,8 +73,8 @@ export class VADChunker {
 
   private processChannelFrame(channel: 0 | 1, samples: number[], rms: number): void {
     // Channel 0 (Interviewer loopback): 0.005
-    // Channel 1 (Candidate mic): 0.002 for high sensitivity to natural/quiet microphone speech
-    const threshold = channel === 0 ? this.speechThreshold : 0.002;
+    // Channel 1 (Candidate mic): 0.0012 for ultra-high sensitivity to natural microphone speech
+    const threshold = channel === 0 ? this.speechThreshold : 0.0012;
     const isSpeaking = rms >= threshold;
 
     if (channel === 0) {
@@ -114,11 +114,13 @@ export class VADChunker {
 
   private flushSegment(channel: 0 | 1): void {
     const rawSamples = channel === 0 ? this.ch0Accumulator : this.ch1Accumulator;
+    const speakerLabel = channel === 0 ? 'Interviewer' : 'Candidate';
 
     // Minimum 300ms of audio required (~4800 samples at 16kHz)
     if (rawSamples.length >= 4800) {
-      const float32 = new Float32Array(rawSamples);
       const durationMs = Math.round((rawSamples.length / this.sampleRate) * 1000);
+      console.log(`[VADChunker] Emitted ${speakerLabel} utterance: ${rawSamples.length} samples (~${durationMs}ms)`);
+      const float32 = new Float32Array(rawSamples);
 
       const segment: SpeechSegment = {
         channel,

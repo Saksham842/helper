@@ -79,8 +79,9 @@ export const TranscriptFeed: React.FC = () => {
     localStorage.setItem('ghostpilot_selected_mic', micId);
     if (isListening) {
       try {
-        const loopbackStream = await audioCaptureService.startLoopbackCapture();
+        console.log(`[TranscriptFeed] Switching microphone to: ${micId}`);
         const micStream = await audioCaptureService.startMicrophoneCapture(micId);
+        const loopbackStream = await audioCaptureService.startLoopbackCapture();
         audioMultiplexer.stop();
         await audioMultiplexer.start(loopbackStream, micStream);
       } catch (err: any) {
@@ -99,9 +100,16 @@ export const TranscriptFeed: React.FC = () => {
       const micStream = await audioCaptureService.startMicrophoneCapture(selectedMicId || undefined);
 
       // Refresh microphones after permission is granted so device labels are visible
-      audioCaptureService.getMicrophones().then((devices) => {
-        if (devices.length > 0) setMicrophones(devices);
-      });
+      const devices = await audioCaptureService.getMicrophones();
+      if (devices.length > 0) {
+        setMicrophones(devices);
+        const activeTrack = micStream.getAudioTracks()[0];
+        const activeDeviceId = activeTrack?.getSettings()?.deviceId;
+        if (activeDeviceId && activeDeviceId !== selectedMicId) {
+          setSelectedMicId(activeDeviceId);
+          localStorage.setItem('ghostpilot_selected_mic', activeDeviceId);
+        }
+      }
 
       // 3. Initialize local Whisper transcriber
       await localWhisperClient.initialize();

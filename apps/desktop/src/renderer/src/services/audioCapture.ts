@@ -11,12 +11,14 @@ export class AudioCaptureService {
     if (!navigator.mediaDevices?.enumerateDevices) return [];
     try {
       const devices = await navigator.mediaDevices.enumerateDevices();
-      return devices
+      const mics = devices
         .filter((d) => d.kind === 'audioinput')
         .map((d) => ({
           deviceId: d.deviceId,
           label: d.label || `Microphone (${d.deviceId.slice(0, 5)}...)`,
         }));
+      console.log(`[AudioCapture] Enumerated ${mics.length} mic(s):`, mics.map((m) => `"${m.label}" (${m.deviceId.slice(0, 8)}...)`).join(', '));
+      return mics;
     } catch (err) {
       console.error('Failed to enumerate audio devices:', err);
       return [];
@@ -68,20 +70,47 @@ export class AudioCaptureService {
       this.micStream = null;
     }
 
-    // Flexible constraints with autoGainControl to boost microphone levels automatically
-    const constraints: MediaStreamConstraints = {
-      audio: deviceId
-        ? {
-            deviceId: { exact: deviceId },
-            autoGainControl: true,
-          }
-        : {
-            autoGainControl: true,
-          },
-      video: false,
+    // Attempt preferred vocal constraints with autoGainControl
+    const audioConstraints: MediaTrackConstraints = {
+      echoCancellation: false,
+      noiseSuppression: false,
+      autoGainControl: true,
     };
+    if (deviceId && deviceId !== 'default') {
+      audioConstraints.deviceId = { ideal: deviceId };
+    }
 
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    let stream: MediaStream;
+    try {
+      console.log('[AudioCapture] Requesting microphone with constraints:', JSON.stringify(audioConstraints));
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: audioConstraints,
+        video: false,
+      });
+    } catch (prefErr) {
+      console.warn('[AudioCapture] Preferred constraints failed, falling back to simple { audio: true }:', prefErr);
+      stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: false,
+      });
+    }
+
+    const audioTrack = stream.getAudioTracks()[0];
+    if (audioTrack) {
+      audioTrack.enabled = true;
+      const settings = audioTrack.getSettings();
+      console.log(`[AudioCapture] Candidate microphone active: "${audioTrack.label}" (id: ${audioTrack.id}, readyState: ${audioTrack.readyState}, muted: ${audioTrack.muted}, channels: ${settings.channelCount}, sampleRate: ${settings.sampleRate})`);
+
+      audioTrack.onmute = () => {
+        console.warn(`[AudioCapture] Microphone track was MUTED by system/driver: "${audioTrack.label}"`);
+      };
+      audioTrack.onunmute = () => {
+        console.log(`[AudioCapture] Microphone track UNMUTED: "${audioTrack.label}"`);
+      };
+    } else {
+      console.error('[AudioCapture] No audio track found on captured microphone stream!');
+    }
+
     this.micStream = stream;
     return stream;
   }
