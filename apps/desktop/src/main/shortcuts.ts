@@ -38,7 +38,15 @@ export function registerGlobalShortcuts(hudManager: HUDWindowManager): void {
     }
   });
 
-  // 5. Cmd/Ctrl + Enter (manual trigger question answer)
+  // 5. Cmd/Ctrl + Shift + L (launch/toggle Live Copilot Mode)
+  registerSafe('CommandOrControl+Shift+L', () => {
+    const win = hudManager.getWindow();
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('hotkey:action', 'toggle_live_copilot');
+    }
+  });
+
+  // 6. Cmd/Ctrl + Enter (manual trigger question answer)
   registerSafe('CommandOrControl+Return', () => {
     const win = hudManager.getWindow();
     if (win && !win.isDestroyed()) {
@@ -46,36 +54,58 @@ export function registerGlobalShortcuts(hudManager: HUDWindowManager): void {
     }
   });
 
-  // 6. Opacity adjustment shortcuts
-  registerSafe('CommandOrControl+Shift+Up', () => {
-    hudManager.adjustOpacity(0.1);
+  // 7. Dedicated Vertical Content Scrolling (Ctrl/Cmd + Up / Down & PageUp / PageDown)
+  registerSafe('CommandOrControl+Up', () => {
     const win = hudManager.getWindow();
     if (win && !win.isDestroyed()) {
       win.webContents.send('hotkey:action', 'scroll_up');
     }
+  });
+
+  registerSafe('PageUp', () => {
+    const win = hudManager.getWindow();
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('hotkey:action', 'scroll_up');
+    }
+  });
+
+  registerSafe('CommandOrControl+Down', () => {
+    const win = hudManager.getWindow();
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('hotkey:action', 'scroll_down');
+    }
+  });
+
+  registerSafe('PageDown', () => {
+    const win = hudManager.getWindow();
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('hotkey:action', 'scroll_down');
+    }
+  });
+
+  // 8. Cmd/Ctrl + Shift + X (Clear live chat timeline and reset rolling memory)
+  registerSafe('CommandOrControl+Shift+X', () => {
+    const win = hudManager.getWindow();
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('hotkey:action', 'clear_chat');
+    }
+  });
+
+  // 9. Cmd/Ctrl + Shift + F (Follow-up code context bridge into Live Copilot)
+  registerSafe('CommandOrControl+Shift+F', () => {
+    const win = hudManager.getWindow();
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('hotkey:action', 'followup_bridge');
+    }
+  });
+
+  // 10. Dedicated HUD Opacity Adjustment (Ctrl/Cmd + Shift + Up / Down in 10% steps)
+  registerSafe('CommandOrControl+Shift+Up', () => {
+    hudManager.adjustOpacity(0.1);
   });
 
   registerSafe('CommandOrControl+Shift+Down', () => {
     hudManager.adjustOpacity(-0.1);
-    const win = hudManager.getWindow();
-    if (win && !win.isDestroyed()) {
-      win.webContents.send('hotkey:action', 'scroll_down');
-    }
-  });
-
-  // 7. Dedicated scrolling shortcuts
-  registerSafe('CommandOrControl+Shift+J', () => {
-    const win = hudManager.getWindow();
-    if (win && !win.isDestroyed()) {
-      win.webContents.send('hotkey:action', 'scroll_down');
-    }
-  });
-
-  registerSafe('CommandOrControl+Shift+K', () => {
-    const win = hudManager.getWindow();
-    if (win && !win.isDestroyed()) {
-      win.webContents.send('hotkey:action', 'scroll_up');
-    }
   });
 
   // Unregister all global shortcuts cleanly on application quit

@@ -236,7 +236,7 @@ export class HUDWindowManager {
 
   public setOpacity(level: number): void {
     if (!this.window) return;
-    const clamped = Math.min(1.0, Math.max(0.1, Number(level.toFixed(2))));
+    const clamped = Math.min(1.0, Math.max(0.2, Number(level.toFixed(2))));
     this.state.opacity = clamped;
     this.window.setOpacity(clamped);
     this.broadcastState();

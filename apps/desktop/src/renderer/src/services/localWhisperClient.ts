@@ -1,6 +1,7 @@
 import type { SpeakerRole } from '@ghostpilot/shared';
 import { vadChunker, SpeechSegment } from './vadChunker';
 import { questionDetector } from './questionDetector';
+import { groqKeyManager } from './groqKeyManager';
 
 export interface TranscriptMessage {
   id: string;
@@ -85,8 +86,7 @@ export class LocalWhisperClient {
   public async initialize(): Promise<void> {
     if (this.transcriber || this.isInitializing) return;
 
-    const envKey = (import.meta as any).env?.VITE_GROQ_API_KEY || '';
-    const groqApiKey = localStorage.getItem('ghostpilot_groq_api_key') || envKey;
+    const groqApiKey = groqKeyManager.getActiveKey();
 
     if (groqApiKey) {
       this.updateStatus('ready', 'Groq Whisper Cloud STT Ready (<200ms)');
@@ -177,8 +177,7 @@ export class LocalWhisperClient {
 
       try {
         let text = '';
-        const envKey = (import.meta as any).env?.VITE_GROQ_API_KEY || '';
-        const groqApiKey = localStorage.getItem('ghostpilot_groq_api_key') || envKey;
+        const groqApiKey = groqKeyManager.getActiveKey();
 
         // 1. Primary: Groq ultra-low latency (<200ms) whisper-large-v3-turbo (0% local CPU)
         if (groqApiKey) {
@@ -189,13 +188,16 @@ export class LocalWhisperClient {
             formData.append('model', 'whisper-large-v3-turbo');
             formData.append('temperature', '0');
 
-            const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
-              method: 'POST',
-              headers: {
-                Authorization: `Bearer ${groqApiKey}`,
-              },
-              body: formData,
-            });
+            const res = await groqKeyManager.fetchWithFallback(
+              'https://api.groq.com/openai/v1/audio/transcriptions',
+              (key) => ({
+                method: 'POST',
+                headers: {
+                  Authorization: `Bearer ${key}`,
+                },
+                body: formData,
+              })
+            );
 
             if (res.ok) {
               const data = await res.json();

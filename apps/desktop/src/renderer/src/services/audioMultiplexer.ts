@@ -221,6 +221,18 @@ export class AudioMultiplexer {
     }
   }
 
+  public pause(): void {
+    if (this.micMonoGain) {
+      this.micMonoGain.gain.value = 0;
+    }
+  }
+
+  public resume(): void {
+    if (this.micMonoGain) {
+      this.micMonoGain.gain.value = 3.5;
+    }
+  }
+
   public getIsRunning(): boolean {
     return this.isRunning;
   }

@@ -6,11 +6,10 @@ export async function POST(req: NextRequest) {
     const { question, history = [], targetRole, customInstructions, resumeText } = await req.json();
 
     const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) {
+    const fallbackKey = process.env.GROQ_API_KEY_FALLBACK;
+    if (!apiKey && !fallbackKey) {
       return NextResponse.json({ error: 'GROQ_API_KEY is not configured' }, { status: 500 });
     }
-
-    const groq = new Groq({ apiKey });
 
     const systemPrompt = `You are GhostPilot, an undetectable, ultra-low latency real-time interview copilot.
 The candidate is actively speaking to an interviewer on a live call.
@@ -34,26 +33,49 @@ CRITICAL INSTRUCTIONS:
     }
     userPrompt += `\nQuestion to Answer:\n"${question}"`;
 
+    async function executeWithKeyFallback<T>(fn: (groqClient: Groq) => Promise<T>): Promise<T> {
+      const keys = [apiKey, fallbackKey].filter(Boolean) as string[];
+      let lastErr: any;
+      for (const k of keys) {
+        try {
+          const client = new Groq({ apiKey: k });
+          return await fn(client);
+        } catch (err: any) {
+          lastErr = err;
+          if (keys.length > 1 && (err?.status === 429 || err?.message?.includes('rate_limit') || err?.message?.includes('429'))) {
+            console.warn('[Copilot Answer] Groq key rate limited (429), switching to fallback key...');
+            continue;
+          }
+          throw err;
+        }
+      }
+      throw lastErr;
+    }
+
     let stream;
     try {
-      stream = await groq.chat.completions.create({
-        model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        stream: true,
-      });
+      stream = await executeWithKeyFallback((groq) =>
+        groq.chat.completions.create({
+          model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          stream: true,
+        })
+      );
     } catch (primaryErr) {
-      console.warn('[Copilot Answer] Primary model failed, trying fallback:', primaryErr);
-      stream = await groq.chat.completions.create({
-        model: 'openai/gpt-oss-20b',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        stream: true,
-      });
+      console.warn('[Copilot Answer] Primary model failed, trying fallback model:', primaryErr);
+      stream = await executeWithKeyFallback((groq) =>
+        groq.chat.completions.create({
+          model: 'openai/gpt-oss-20b',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+          ],
+          stream: true,
+        })
+      );
     }
 
     const encoder = new TextEncoder();

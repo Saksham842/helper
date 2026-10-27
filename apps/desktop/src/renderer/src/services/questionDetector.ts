@@ -1,12 +1,26 @@
 import type { TranscriptMessage } from './localWhisperClient';
 
-export type QuestionDetectedCallback = (question: string, recentContext: TranscriptMessage[]) => void;
+export type QuestionDetectedCallback = (
+  question: string,
+  recentContext: TranscriptMessage[],
+  source?: 'interviewer' | 'candidate'
+) => void;
+
+export type CandidateAnswerCallback = (
+  candidateSpoken: string,
+  precedingQuestion: string
+) => void;
 
 export class QuestionDetector {
   private recentMessages: TranscriptMessage[] = [];
   private debounceTimer: any = null;
+  private candidateAnswerTimer: any = null;
   private readonly debounceDelayMs: number = 1200;
+  private readonly candidateEvalDelayMs: number = 1800;
   private onQuestionCallbacks: QuestionDetectedCallback[] = [];
+  private onCandidateAnswerCallbacks: CandidateAnswerCallback[] = [];
+  private lastActiveQuestion: string = '';
+  private pendingCandidateChunks: string[] = [];
 
   // Common question starters & keywords in technical interviews
   private readonly questionKeywords: RegExp[] = [
@@ -16,6 +30,16 @@ export class QuestionDetector {
     /\b(have you (ever|worked|used|built|designed))\b/i,
     /\b(what's your experience|how do you handle|what are the trade-offs)\b/i,
     /\?$/,
+  ];
+
+  // Topic clarification patterns when candidate speaks
+  private readonly candidateTopicPatterns: RegExp[] = [
+    /\b(?:so\s+(?:you\s+are|you're)\s+asking\s+about|asking\s+about|asked\s+about)\s+(?:the\s+|how\s+to\s+)?(.+)/i,
+    /\b(?:so\s+you\s+want\s+me\s+to|you\s+want\s+me\s+to|you'd\s+like\s+me\s+to)\s+(.+)/i,
+    /\b(?:how\s+to\s+design|how\s+do\s+we\s+design|how\s+should\s+we\s+design|design\s+a|design\s+an)\s+(.+)/i,
+    /\b(?:can\s+we\s+solve\s+this\s+with|can\s+we\s+use|what\s+if\s+we\s+use)\s+(.+)/i,
+    /\b(?:the\s+question\s+is\s+about|the\s+problem\s+is\s+about)\s+(.+)/i,
+    /\b(?:let's\s+design|let's\s+implement|let's\s+solve)\s+(.+)/i,
   ];
 
   // Affirmations, greetings, and filler phrases that should not trigger question answering
@@ -34,15 +58,47 @@ export class QuestionDetector {
     };
   }
 
-  public processTranscript(message: TranscriptMessage): void {
-    this.recentMessages.push(message);
-    if (this.recentMessages.length > 20) {
-      this.recentMessages.shift();
+  public onCandidateAnswer(callback: CandidateAnswerCallback): () => void {
+    this.onCandidateAnswerCallbacks.push(callback);
+    return () => {
+      this.onCandidateAnswerCallbacks = this.onCandidateAnswerCallbacks.filter((cb) => cb !== callback);
+    };
+  }
+
+  public setLastActiveQuestion(question: string): void {
+    this.lastActiveQuestion = question;
+  }
+
+  public getLastActiveQuestion(): string {
+    return this.lastActiveQuestion;
+  }
+
+  public extractCandidateTopic(text: string): string | null {
+    for (const re of this.candidateTopicPatterns) {
+      const match = text.match(re);
+      if (match && match[1]) {
+        let cleaned = match[1].replace(/[.,?!]+$/, '').trim();
+        if (cleaned.length >= 4) {
+          if (/how\s+to\s+design/i.test(match[0]) && !/^design/i.test(cleaned)) {
+            return `Design ${cleaned}`;
+          }
+          return cleaned;
+        }
+      }
     }
 
-    // Only inspect interviewer speech for automatic questions
-    if (message.speaker !== 'interviewer') {
-      return;
+    // Direct question asked by candidate ending in ? with question keywords
+    if (text.includes('?') && /\b(how|why|what|can|could|should|which)\b/i.test(text)) {
+      return text.trim();
+    }
+
+    return null;
+  }
+
+  public processTranscript(message: TranscriptMessage): void {
+    this.recentMessages.push(message);
+    if (this.recentMessages.length > 25) {
+      this.recentMessages.shift();
     }
 
     if (!message.isFinal) {
@@ -54,8 +110,38 @@ export class QuestionDetector {
       return;
     }
 
+    // ── 1. Candidate Audio Stream Intelligence ──
+    if (message.speaker === 'candidate') {
+      // Check if candidate clarified or stated a topic/question
+      const candidateTopic = this.extractCandidateTopic(text);
+      if (candidateTopic) {
+        if (this.debounceTimer) clearTimeout(this.debounceTimer);
+        this.debounceTimer = setTimeout(() => {
+          this.lastActiveQuestion = candidateTopic;
+          this.emitQuestion(candidateTopic, 'candidate');
+        }, 800);
+        return;
+      }
+
+      // If candidate is explaining/answering an active question, evaluate their response
+      if (this.lastActiveQuestion) {
+        this.pendingCandidateChunks.push(text);
+        if (this.candidateAnswerTimer) clearTimeout(this.candidateAnswerTimer);
+
+        this.candidateAnswerTimer = setTimeout(() => {
+          const fullCandidateAnswer = this.pendingCandidateChunks.join(' ').trim();
+          this.pendingCandidateChunks = [];
+          // Require at least 6 words of substantive explanation to evaluate
+          if (fullCandidateAnswer.split(/\s+/).length >= 6) {
+            this.emitCandidateAnswer(fullCandidateAnswer, this.lastActiveQuestion);
+          }
+        }, this.candidateEvalDelayMs);
+      }
+      return;
+    }
+
+    // ── 2. Interviewer Audio Stream Intelligence ──
     if (this.isLikelyQuestion(text)) {
-      // Clear previous debounce
       if (this.debounceTimer) {
         clearTimeout(this.debounceTimer);
       }
@@ -73,7 +159,8 @@ export class QuestionDetector {
           }
         }
         const fullQuestion = interviewerChunks.join(' ') || text;
-        this.emitQuestion(fullQuestion);
+        this.lastActiveQuestion = fullQuestion;
+        this.emitQuestion(fullQuestion, 'interviewer');
       }, this.debounceDelayMs);
     }
   }
@@ -84,7 +171,6 @@ export class QuestionDetector {
       this.debounceTimer = null;
     }
 
-    // If explicit question provided, use it; otherwise extract recent interviewer context
     let textToAsk = questionText?.trim();
     if (!textToAsk) {
       const interviewerChunks: string[] = [];
@@ -100,12 +186,12 @@ export class QuestionDetector {
       textToAsk = interviewerChunks.join(' ') || 'Provide the solution and key points for the current interview topic.';
     }
 
-    this.emitQuestion(textToAsk);
+    this.lastActiveQuestion = textToAsk;
+    this.emitQuestion(textToAsk, 'interviewer');
   }
 
   public isLikelyQuestion(text: string): boolean {
     if (text.length < 5) return false;
-    // Don't treat standalone greetings as questions
     if (/^(how are you|how're you|how is it going)\??$/i.test(text.trim())) return false;
     if (text.includes('?')) return true;
     return this.questionKeywords.some((pattern) => pattern.test(text));
@@ -122,15 +208,25 @@ export class QuestionDetector {
 
   public clearHistory(): void {
     this.recentMessages = [];
+    this.lastActiveQuestion = '';
+    this.pendingCandidateChunks = [];
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
       this.debounceTimer = null;
     }
+    if (this.candidateAnswerTimer) {
+      clearTimeout(this.candidateAnswerTimer);
+      this.candidateAnswerTimer = null;
+    }
   }
 
-  private emitQuestion(question: string): void {
+  private emitQuestion(question: string, source: 'interviewer' | 'candidate' = 'interviewer'): void {
     const contextSnapshot = [...this.recentMessages];
-    this.onQuestionCallbacks.forEach((cb) => cb(question, contextSnapshot));
+    this.onQuestionCallbacks.forEach((cb) => cb(question, contextSnapshot, source));
+  }
+
+  private emitCandidateAnswer(candidateSpoken: string, precedingQuestion: string): void {
+    this.onCandidateAnswerCallbacks.forEach((cb) => cb(candidateSpoken, precedingQuestion));
   }
 }
 

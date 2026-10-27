@@ -1,3 +1,5 @@
+import { groqKeyManager } from './groqKeyManager';
+
 export interface VisionSolution {
   problemTitle: string;
   timeComplexity: string;
@@ -14,6 +16,7 @@ export type VisionErrorCallback = (error: string) => void;
 export class VisionSolverService {
   private isAnalyzing: boolean = false;
   private currentAbortController: AbortController | null = null;
+  private lastSolutionMarkdown: string = '';
   private onTokenCallbacks: VisionTokenCallback[] = [];
   private onCompleteCallbacks: VisionCompleteCallback[] = [];
   private onErrorCallbacks: VisionErrorCallback[] = [];
@@ -47,12 +50,11 @@ export class VisionSolverService {
     this.isAnalyzing = false;
   }
 
-  public async captureAndSolve(targetLanguage: string = 'Python'): Promise<void> {
-    const envKey = (import.meta as any).env?.VITE_GROQ_API_KEY || '';
-    const apiKey = localStorage.getItem('ghostpilot_groq_api_key') || envKey;
-    if (!apiKey) {
+  public async captureAndSolve(targetLanguage: string = 'C++'): Promise<void> {
+    const activeKey = groqKeyManager.getActiveKey();
+    if (!activeKey) {
       this.onErrorCallbacks.forEach((cb) =>
-        cb('Groq API key required for Vision Solver. Paste your key (starts with gsk_) in the input below.')
+        cb('Groq API key required for Vision Solver. Paste your key (starts with gsk_) in the input above.')
       );
       return;
     }
@@ -72,83 +74,58 @@ export class VisionSolverService {
       const base64Data = dataUrl.replace(/^data:image\/\w+;base64,/, '');
       const imageUrl = dataUrl.startsWith('data:') ? dataUrl : `data:image/jpeg;base64,${base64Data}`;
 
-      // 2. Query Groq Multimodal Vision Model with clean engineering prompt
+      const langFence = targetLanguage.toLowerCase() === 'c++' ? 'cpp' : targetLanguage.toLowerCase();
+
+      // 2. Query Groq Multimodal Vision Model with strict top-to-bottom prompt ordering
       const systemPrompt = `You are an expert algorithm engineer and competitive programmer.
-Your task is to analyze the coding problem visible in the provided screenshot (from LeetCode, HackerRank, Codeforces, an IDE, or an assessment platform) and provide the optimal solution in ${targetLanguage}.
+Your task is to analyze the coding problem visible in the provided screenshot (from LeetCode, HackerRank, Codeforces, an IDE, or an assessment platform) and provide the optimal, complete solution in ${targetLanguage}.
 
-Format your response cleanly and strictly as follows:
-### Problem: [Problem Title / Summary]
-- **Description:** [2-3 sentences summarizing the problem, input format, and constraints]
+STRICT FORMAT AND 5-TIER SEQUENCE REQUIREMENTS:
+You MUST structure your response in this EXACT top-to-bottom order:
 
-### Complexity
-- **Time Complexity:** O(...)
-- **Space Complexity:** O(...)
+### 1. Intuition / What to Say Out Loud
+- [3–4 natural, conversational bullet points written strictly in first-person speech (e.g., "My initial intuition here is to use two pointers because...", "To avoid an O(N²) nested loop, we can track...") that the candidate can read verbatim out loud to the interviewer]
 
-### Optimal Approach
-- [Core algorithm & pattern, e.g., Sliding Window, Monotonic Stack, Two Pointers, Dynamic Programming, BFS/DFS]
-- [Why this approach is optimal]
+### 2. Brute Force Approach & Complexity
+- **Approach:** [Concise description of the naive/brute force approach and why it is suboptimal at scale]
+- **Time Complexity:** O(...) | **Space Complexity:** O(...)
 
-### Solution (${targetLanguage})
-\`\`\`${targetLanguage.toLowerCase()}
-[Clean, production-ready, well-commented code solving the problem]
+### 3. Optimal Approach & Concept
+- **Concept & Strategy:** [Explain the optimal algorithmic strategy, invariant, and data structures (e.g., Monotonic Stack, Two Pointers, Trie, Hash Map) and why it reduces time/space complexity compared to brute force. Explain this clearly to the interviewer BEFORE writing code]
+
+### 4. Solution (${targetLanguage})
+\`\`\`${langFence}
+// Full, production-ready, complete modern ${targetLanguage} code.
+// MANDATORY: You must write the ENTIRE implementation from start to finish.
+// Include all necessary standard library headers (#include <vector>, <string>, <unordered_map>, <algorithm>, etc.).
+// If custom data structures are required (such as TreeNode, ListNode, or custom Comparator), provide their complete definitions.
+// Implement all helper functions and the full Solution class methods without skipping any lines, without using ellipses (...), and without placeholder comments like '// implement here'.
 \`\`\`
 
-### Dry Run & Edge Cases
-- **Sample Walkthrough:** [Quick step-by-step trace on sample input]
-- **Key Edge Cases:** [Empty/null inputs, single element, negative values, boundary overflow]`;
+### 5. Complexity & Edge Cases
+- **Time Complexity:** O(...) - [1-line concise justification]
+- **Space Complexity:** O(...) - [1-line concise justification]
+- **Edge Cases:** [2-3 critical edge cases to mention to the interviewer (empty inputs, single element, negative values, boundary overflow)]`;
 
-      const userText = `Please identify and solve the coding problem visible in this screenshot in ${targetLanguage}. If code editor or problem description is shown, extract the problem specifications and output the optimal code solution.`;
+      const userText = `Please identify and solve the coding problem visible in this screenshot in ${targetLanguage}.
+Provide (1) intuition script to read aloud, (2) brute force approach and complexity, (3) optimal conceptual approach to explain before coding, (4) complete ${targetLanguage} solution code, and (5) optimal complexity with edge cases.`;
 
-      // Use Groq's multimodal vision model (qwen/qwen3.8-27b)
+      // Use Groq's multimodal vision model
       const visionModel =
         (import.meta as any).env?.VITE_GROQ_VISION_MODEL ||
         'qwen/qwen3.8-27b';
 
-      let response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: visionModel,
-          max_tokens: 1500,
-          temperature: 0.1,
-          stream: true,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            {
-              role: 'user',
-              content: [
-                {
-                  type: 'text',
-                  text: userText,
-                },
-                {
-                  type: 'image_url',
-                  image_url: {
-                    url: imageUrl,
-                  },
-                },
-              ],
-            },
-          ],
-        }),
-        signal: this.currentAbortController.signal,
-      });
-
-      if (!response.ok && response.status === 429) {
-        console.warn('[VisionSolver] Rate limited (429), waiting 1.5s before retrying...');
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      let response = await groqKeyManager.fetchWithFallback(
+        'https://api.groq.com/openai/v1/chat/completions',
+        (key) => ({
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${apiKey}`,
+            Authorization: `Bearer ${key}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             model: visionModel,
-            max_tokens: 1500,
+            max_tokens: 2500,
             temperature: 0.1,
             stream: true,
             messages: [
@@ -170,13 +147,26 @@ Format your response cleanly and strictly as follows:
               },
             ],
           }),
-          signal: this.currentAbortController.signal,
-        });
-      }
+          signal: this.currentAbortController?.signal,
+        })
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Vision API Error (${response.status}): ${errorText}`);
+        let parsedMessage = errorText;
+        try {
+          const errJson = JSON.parse(errorText);
+          if (errJson?.error?.message) {
+            parsedMessage = errJson.error.message;
+          }
+        } catch {}
+
+        if (response.status === 429) {
+          throw new Error(
+            `Groq Vision Rate Limit (429): ${parsedMessage}. Note: Both configured keys share the same Groq account quota. To resolve immediately, use a key from a separate Groq account or type the problem title directly.`
+          );
+        }
+        throw new Error(`Vision API Error (${response.status}): ${parsedMessage}`);
       }
 
       if (!response.body) {
@@ -217,6 +207,7 @@ Format your response cleanly and strictly as follows:
       }
 
       this.isAnalyzing = false;
+      this.lastSolutionMarkdown = fullMarkdown;
       const parsed = this.parseSolution(fullMarkdown);
       this.onCompleteCallbacks.forEach((cb) => cb(parsed));
     } catch (err: any) {
@@ -231,14 +222,22 @@ Format your response cleanly and strictly as follows:
     return this.isAnalyzing;
   }
 
-  private parseSolution(markdown: string): VisionSolution {
+  public getLastSolutionMarkdown(): string {
+    return this.lastSolutionMarkdown;
+  }
+
+  public parseSolution(markdown: string): VisionSolution {
     // Extract code block
     const codeMatch = markdown.match(/```(?:\w+)?\n([\s\S]*?)```/);
     const code = codeMatch ? codeMatch[1].trim() : '';
 
-    // Extract time & space complexity
-    const timeMatch = markdown.match(/Time Complexity:?\*\*?\s*O\(([^)]+)\)/i);
-    const spaceMatch = markdown.match(/Space Complexity:?\*\*?\s*O\(([^)]+)\)/i);
+    // Extract optimal time & space complexity placed strictly after the code block
+    const firstCodeFence = markdown.indexOf('```');
+    const secondCodeFence = firstCodeFence >= 0 ? markdown.indexOf('```', firstCodeFence + 3) : -1;
+    const postCodeSection = secondCodeFence >= 0 ? markdown.slice(secondCodeFence + 3) : markdown;
+
+    const timeMatch = postCodeSection.match(/Time Complexity:?\*\*?\s*O\(([^)]+)\)/i);
+    const spaceMatch = postCodeSection.match(/Space Complexity:?\*\*?\s*O\(([^)]+)\)/i);
 
     const timeComplexity = timeMatch ? `O(${timeMatch[1]})` : 'O(N)';
     const spaceComplexity = spaceMatch ? `O(${spaceMatch[1]})` : 'O(1)';

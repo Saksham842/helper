@@ -165,31 +165,124 @@ export function renderInline(parts: InlinePart[]): React.ReactNode {
   return parts.map((p, i) => {
     if (p.t === 'bold')   return <strong key={i} style={{ color: '#fde68a', fontWeight: 700 }}>{p.v}</strong>;
     if (p.t === 'italic') return <em     key={i} style={{ color: '#93c5fd', fontStyle: 'italic' }}>{p.v}</em>;
-    if (p.t === 'code')   return (
+    if (p.t === 'code') return (
       <code key={i} style={{
         background: 'rgba(139,92,246,0.18)', color: '#a78bfa',
         borderRadius: '4px', padding: '1px 5px',
         fontFamily: 'ui-monospace, Menlo, monospace', fontSize: '11px',
+        wordBreak: 'break-word',
+        overflowWrap: 'anywhere',
+        whiteSpace: 'pre-wrap',
       }}>{p.v}</code>
     );
-    return <span key={i} style={{ color: '#cbd5e1' }}>{p.v}</span>;
+    return <span key={i} style={{ color: '#cbd5e1', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{p.v}</span>;
   });
 }
 
 // ─── Section header colours ───────────────────────────────────────────────────
 
 export function sectionColor(text: string): string {
-  const t = text.toLowerCase();
-  if (t.startsWith('problem'))              return '#38bdf8';  // sky
-  if (t.startsWith('complex'))              return '#fb923c';  // orange
-  if (t.startsWith('optimal') || t.startsWith('approach')) return '#a78bfa'; // violet
-  if (t.startsWith('solution'))             return '#34d399';  // emerald
-  if (t.startsWith('dry') || t.startsWith('edge')) return '#f472b6'; // pink
-  if (t.startsWith('result') || t.startsWith('output')) return '#4ade80'; // green
+  const t = text.toLowerCase().replace(/^\d+[\s.)-]+\s*/, '');
+  if (t.includes('what to say') || t.includes('intuition')) return '#38bdf8'; // sky / cyan
+  if (t.includes('brute force'))                             return '#fbbf24'; // amber
+  if (t.includes('optimal approach') || t.includes('concept')) return '#a78bfa'; // violet
+  if (t.includes('code') || t.includes('solution'))          return '#34d399'; // emerald
+  if (t.includes('complex') || t.includes('edge'))           return '#fb923c'; // orange
+  if (t.includes('problem'))                                 return '#38bdf8'; // sky
+  if (t.includes('dry') || t.includes('trace'))              return '#f472b6'; // pink
+  if (t.includes('result') || t.includes('output'))          return '#4ade80'; // green
   return '#94a3b8';  // muted default
 }
 
-// ─── MarkdownView component ───────────────────────────────────────────────────
+// ─── CodeBlock Component ───────────────────────────────────────────────────────
+
+const CodeBlock: React.FC<{ body: string; lang: string }> = ({ body, lang }) => {
+  const [copied, setCopied] = React.useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(body);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div
+      style={{
+        marginTop: '6px',
+        marginBottom: '8px',
+        width: '100%',
+        maxWidth: '100%',
+        overflowX: 'hidden',
+        background: 'rgba(255, 255, 255, 0.02)',
+        borderLeft: '2px solid rgba(56, 189, 248, 0.5)',
+        borderRadius: '0 6px 6px 0',
+        boxSizing: 'border-box',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '3px 8px',
+          boxSizing: 'border-box',
+          maxWidth: '100%',
+        }}
+      >
+        <span
+          style={{
+            fontSize: '9.5px',
+            fontWeight: 700,
+            color: '#38bdf8',
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+          }}
+        >
+          {lang || 'code'}
+        </span>
+        <button
+          onClick={handleCopy}
+          style={{
+            padding: '2px 7px',
+            borderRadius: '4px',
+            background: 'rgba(255, 255, 255, 0.06)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            color: copied ? '#34d399' : '#cbd5e1',
+            fontSize: '9.5px',
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '3px',
+            flexShrink: 0,
+            marginRight: '2px',
+          }}
+          title="Copy Code"
+        >
+          {copied ? '✓ Copied' : 'Copy'}
+        </button>
+      </div>
+      <pre
+        style={{
+          margin: 0,
+          padding: '6px 10px 8px 10px',
+          overflowX: 'hidden',
+          overflowY: 'visible',
+          maxWidth: '100%',
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
+          overflowWrap: 'anywhere',
+          boxSizing: 'border-box',
+          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+          fontSize: '11.5px',
+          lineHeight: 1.65,
+        }}
+      >
+        {highlightCode(body, lang)}
+      </pre>
+    </div>
+  );
+};
 
 export const MarkdownView: React.FC<{ md: string; accentColor?: string }> = ({
   md,
@@ -197,7 +290,14 @@ export const MarkdownView: React.FC<{ md: string; accentColor?: string }> = ({
 }) => {
   const nodes = parseMarkdown(md);
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+    <div style={{
+      display: 'flex', flexDirection: 'column', gap: '2px',
+      overflowX: 'hidden',
+      maxWidth: '100%',
+      wordBreak: 'break-word',
+      overflowWrap: 'anywhere',
+      boxSizing: 'border-box',
+    }}>
       {nodes.map((node, i) => {
         switch (node.kind) {
 
@@ -242,9 +342,11 @@ export const MarkdownView: React.FC<{ md: string; accentColor?: string }> = ({
               <div key={i} style={{
                 display: 'flex', alignItems: 'flex-start', gap: '6px',
                 paddingLeft: '8px', lineHeight: 1.55,
+                wordBreak: 'break-word',
+                overflowWrap: 'anywhere',
               }}>
                 <span style={{ color: accentColor, marginTop: '3px', fontSize: '8px', flexShrink: 0 }}>◆</span>
-                <span style={{ fontSize: '11.5px' }}>{renderInline(node.parts)}</span>
+                <span style={{ fontSize: '11.5px', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{renderInline(node.parts)}</span>
               </div>
             );
 
@@ -253,44 +355,19 @@ export const MarkdownView: React.FC<{ md: string; accentColor?: string }> = ({
               <div key={i} style={{
                 display: 'flex', alignItems: 'flex-start', gap: '6px',
                 paddingLeft: '8px', lineHeight: 1.55,
+                wordBreak: 'break-word',
+                overflowWrap: 'anywhere',
               }}>
                 <span style={{
                   color: accentColor, fontSize: '10px', fontWeight: 700,
                   minWidth: '14px', flexShrink: 0, marginTop: '1px',
                 }}>{node.n}.</span>
-                <span style={{ fontSize: '11.5px' }}>{renderInline(node.parts)}</span>
+                <span style={{ fontSize: '11.5px', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{renderInline(node.parts)}</span>
               </div>
             );
 
           case 'code':
-            return (
-              <div key={i} style={{ marginTop: '5px', marginBottom: '5px' }}>
-                <div style={{
-                  display: 'flex', alignItems: 'center',
-                  background: '#1e1b4b',
-                  borderRadius: '6px 6px 0 0',
-                  padding: '3px 10px',
-                  borderBottom: '1px solid rgba(99,102,241,0.3)',
-                }}>
-                  <span style={{
-                    fontSize: '10px', fontWeight: 700,
-                    color: '#818cf8', textTransform: 'uppercase', letterSpacing: '0.1em',
-                  }}>{node.lang || 'code'}</span>
-                </div>
-                <pre style={{
-                  margin: 0, padding: '10px 12px',
-                  background: '#0f0e1a',
-                  borderRadius: '0 0 6px 6px',
-                  border: '1px solid rgba(99,102,241,0.2)',
-                  borderTop: 'none',
-                  overflowX: 'auto',
-                  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-                  fontSize: '11.5px', lineHeight: 1.6,
-                }}>
-                  {highlightCode(node.body, node.lang)}
-                </pre>
-              </div>
-            );
+            return <CodeBlock key={i} body={node.body} lang={node.lang} />;
 
           case 'hr':
             return <hr key={i} style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.07)', margin: '6px 0' }} />;

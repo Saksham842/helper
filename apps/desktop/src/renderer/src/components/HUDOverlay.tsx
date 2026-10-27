@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import type { HUDState } from '@ghostpilot/shared';
-import { StealthBadge } from './StealthBadge';
 import { HotkeyCheatsheet } from './HotkeyCheatsheet';
 import {
   Sparkles,
   MousePointer,
   Minimize2,
   Maximize2,
-  Sliders,
   Radio,
   Key,
   Keyboard,
@@ -16,10 +14,14 @@ import {
 import { aiAnswerEngine } from '../services/aiAnswerEngine';
 
 interface HUDOverlayProps {
+  isListening?: boolean;
   children?: React.ReactNode;
 }
 
-export const HUDOverlay: React.FC<HUDOverlayProps> = ({ children }) => {
+export const HUDOverlay: React.FC<HUDOverlayProps> = ({
+  isListening = false,
+  children,
+}) => {
   const [hudState, setHudState] = useState<HUDState>({
     isVisible: true,
     opacity: 0.95,
@@ -65,11 +67,20 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({ children }) => {
     if (window.electronAPI?.onHotkeyPressed) {
       const cleanup = window.electronAPI.onHotkeyPressed((action) => {
         setLastHotkeyAction(action);
-        setTimeout(() => setLastHotkeyAction(null), 3000);
-        if (action === 'scroll_down' && scrollContainerRef.current) {
-          scrollContainerRef.current.scrollBy({ top: 120, behavior: 'smooth' });
-        } else if (action === 'scroll_up' && scrollContainerRef.current) {
-          scrollContainerRef.current.scrollBy({ top: -120, behavior: 'smooth' });
+        setTimeout(() => setLastHotkeyAction(null), 2500);
+
+        if (action === 'scroll_down') {
+          if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollBy({ top: 160, behavior: 'smooth' });
+            scrollContainerRef.current.scrollTop += 160;
+          }
+          window.scrollBy({ top: 160, behavior: 'smooth' });
+        } else if (action === 'scroll_up') {
+          if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollBy({ top: -160, behavior: 'smooth' });
+            scrollContainerRef.current.scrollTop -= 160;
+          }
+          window.scrollBy({ top: -160, behavior: 'smooth' });
         }
       });
       return cleanup;
@@ -84,10 +95,16 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({ children }) => {
     }
   };
 
-  const handleOpacityChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseFloat(e.target.value);
+  const handleCycleOpacity = async () => {
+    // Quick click cycle: 95% -> 80% -> 60% -> 40% -> 95%
+    let nextOpacity = 0.95;
+    if (hudState.opacity >= 0.9) nextOpacity = 0.8;
+    else if (hudState.opacity >= 0.75) nextOpacity = 0.6;
+    else if (hudState.opacity >= 0.55) nextOpacity = 0.4;
+    else nextOpacity = 0.95;
+
     if (window.electronAPI?.setHUDOpacity) {
-      const updated = await window.electronAPI.setHUDOpacity(val);
+      const updated = await window.electronAPI.setHUDOpacity(nextOpacity);
       setHudState(updated);
     }
   };
@@ -100,7 +117,7 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({ children }) => {
     setTimeout(() => {
       setSavedKeySuccess(false);
       setShowKeyInput(false);
-    }, 1500);
+    }, 1200);
   };
 
   return (
@@ -111,234 +128,246 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({ children }) => {
         boxSizing: 'border-box',
         display: 'flex',
         flexDirection: 'column',
-        borderRadius: '16px',
+        borderRadius: '14px',
         background: '#0a0f1d',
         border: '1px solid rgba(255, 255, 255, 0.12)',
-        boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+        boxShadow: '0 25px 60px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.12)',
         color: '#f4f4f5',
         overflow: 'hidden',
-        transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+        transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       }}
     >
-      {/* Draggable Header Bar */}
+      {/* ── Single Ultra-Compact Top Header Bar (Height ~34px) ── */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '12px 14px',
+          height: '35px',
+          padding: '0 10px',
           borderBottom: isCollapsed ? 'none' : '1px solid rgba(255, 255, 255, 0.08)',
-          background: 'linear-gradient(180deg, #111827 0%, #0a0f1d 100%)',
+          background: 'linear-gradient(180deg, #131b2e 0%, #0a0f1d 100%)',
           WebkitAppRegion: 'drag',
           userSelect: 'none',
           cursor: 'grab',
           flexShrink: 0,
+          gap: '6px',
         } as React.CSSProperties}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {/* Left Side: Brand emblem + Mode Switcher Pills */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
           <div
             style={{
-              width: '26px',
-              height: '26px',
-              borderRadius: '8px',
+              width: '18px',
+              height: '18px',
+              borderRadius: '5px',
               background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
-            }}
+              boxShadow: '0 1px 4px rgba(16, 185, 129, 0.4)',
+              cursor: 'grab',
+              WebkitAppRegion: 'drag',
+            } as React.CSSProperties}
+            title="GhostPilot Stealth HUD · Drag Window"
           >
-            <Sparkles size={14} color="#ffffff" />
+            <Sparkles size={11} color="#ffffff" />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontWeight: 700, fontSize: '13px', letterSpacing: '-0.2px', color: '#ffffff' }}>
-              GhostPilot
-            </span>
+
+          {/* Single Unified Copilot Status Indicator */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              padding: '2px 7px',
+              borderRadius: '5px',
+              fontSize: '10.5px',
+              fontWeight: 700,
+              background: 'rgba(16, 185, 129, 0.18)',
+              color: '#34d399',
+              border: '1px solid rgba(16, 185, 129, 0.4)',
+            }}
+            title="GhostPilot Unified Live Copilot & Vision Solver"
+          >
             <span
               style={{
-                fontSize: '9px',
-                fontWeight: 600,
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                padding: '2px 5px',
-                borderRadius: '4px',
-                background: 'rgba(16, 185, 129, 0.12)',
-                color: '#34d399',
-                border: '1px solid rgba(16, 185, 129, 0.25)',
+                width: '6px',
+                height: '6px',
+                borderRadius: '50%',
+                background: isListening ? '#10b981' : '#64748b',
+                boxShadow: isListening ? '0 0 6px #10b981' : 'none',
               }}
-            >
-              Stealth HUD
-            </span>
+            />
+            <span>GhostPilot</span>
           </div>
+
+          {/* Universal C++ Language Badge */}
+          <span
+            style={{
+              fontSize: '9.5px',
+              fontWeight: 700,
+              letterSpacing: '0.04em',
+              padding: '1px 5px',
+              borderRadius: '4px',
+              background: 'rgba(99, 102, 241, 0.16)',
+              color: '#818cf8',
+              border: '1px solid rgba(99, 102, 241, 0.35)',
+            }}
+            title="Default Programming Language: C++ (C++20 STL)"
+          >
+            C++
+          </span>
         </div>
 
-        {/* Non-draggable controls */}
+        {/* Right Side: Status Pills & Action Controls */}
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '6px',
+            gap: '5px',
             WebkitAppRegion: 'no-drag',
           } as React.CSSProperties}
         >
-          <StealthBadge isContentProtected={hudState.isContentProtected} />
+          {/* Click-Through Status Badge */}
+          <button
+            onClick={handleToggleClickThrough}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '3px',
+              padding: '2px 6px',
+              borderRadius: '4px',
+              fontSize: '10px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              background: hudState.isClickThrough ? 'rgba(16, 185, 129, 0.25)' : 'rgba(255, 255, 255, 0.05)',
+              color: hudState.isClickThrough ? '#34d399' : '#94a3b8',
+              border: hudState.isClickThrough ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(255, 255, 255, 0.08)',
+            }}
+            title="Click-Through Pass: Ctrl+Shift+M (Clicks pass through to IDE/Browser)"
+          >
+            <MousePointer size={10} />
+            <span>{hudState.isClickThrough ? 'Click-Thru: ON' : 'Click-Thru: OFF'}</span>
+          </button>
 
-          {/* Groq Key Input Toggle */}
+          {/* Opacity % Pill */}
+          <button
+            onClick={handleCycleOpacity}
+            style={{
+              padding: '2px 6px',
+              borderRadius: '4px',
+              fontSize: '10px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              background: 'rgba(255, 255, 255, 0.05)',
+              color: '#cbd5e1',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+            }}
+            title="Opacity: Ctrl+Shift+↑/↓ (Click to cycle)"
+          >
+            {Math.round(hudState.opacity * 100)}%
+          </button>
+
+          {/* Groq Key Configuration Toggle */}
           <button
             onClick={() => setShowKeyInput(!showKeyInput)}
             style={{
-              width: '26px',
-              height: '26px',
-              borderRadius: '6px',
+              width: '22px',
+              height: '22px',
+              borderRadius: '4px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: showKeyInput ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.06)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              color: showKeyInput ? '#34d399' : '#d4d4d8',
+              background: showKeyInput ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              color: showKeyInput ? '#34d399' : '#94a3b8',
               cursor: 'pointer',
             }}
-            title="Configure Groq AI API Key"
+            title="Configure Groq API Key"
           >
-            <Key size={12} />
+            <Key size={11} />
           </button>
 
-          {/* Hotkeys Toggle */}
+          {/* Hotkey Cheatsheet Toggle */}
           <button
             onClick={() => setShowHotkeys(!showHotkeys)}
             style={{
-              width: '26px',
-              height: '26px',
-              borderRadius: '6px',
+              width: '22px',
+              height: '22px',
+              borderRadius: '4px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: showHotkeys ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255, 255, 255, 0.06)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              color: showHotkeys ? '#60a5fa' : '#d4d4d8',
+              background: showHotkeys ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              color: showHotkeys ? '#60a5fa' : '#94a3b8',
               cursor: 'pointer',
             }}
-            title="Stealth Hotkey Cheatsheet"
+            title="Global Hotkeys Cheatsheet"
           >
-            <Keyboard size={12} />
+            <Keyboard size={11} />
           </button>
 
           {/* Minimize / Expand Toggle */}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             style={{
-              width: '26px',
-              height: '26px',
-              borderRadius: '6px',
+              width: '22px',
+              height: '22px',
+              borderRadius: '4px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: 'rgba(255, 255, 255, 0.06)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              color: '#d4d4d8',
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              color: '#94a3b8',
               cursor: 'pointer',
             }}
             title={isCollapsed ? 'Expand HUD' : 'Collapse HUD'}
           >
-            {isCollapsed ? <Maximize2 size={12} /> : <Minimize2 size={12} />}
+            {isCollapsed ? <Maximize2 size={11} /> : <Minimize2 size={11} />}
           </button>
         </div>
       </div>
 
-      {/* Main Body */}
+      {/* ── Main Body (100% Window Width, Zero Horizontal Scrollbars) ── */}
       {!isCollapsed && (
         <div
           ref={scrollContainerRef}
           style={{
             flex: 1,
+            width: '100%',
+            maxWidth: '100%',
+            boxSizing: 'border-box',
             display: 'flex',
             flexDirection: 'column',
-            gap: '10px',
-            padding: '12px 14px',
+            gap: '4px',
+            padding: '4px 8px 56px 8px',
             overflowY: 'auto',
+            overflowX: 'hidden',
             WebkitAppRegion: 'no-drag',
           } as React.CSSProperties}
         >
-          {/* Quick Stealth Controls Bar */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '10px',
-              padding: '8px 10px',
-              borderRadius: '10px',
-              background: '#111827',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              flexShrink: 0,
-            }}
-          >
-            {/* Click-Through Toggle */}
-            <button
-              onClick={handleToggleClickThrough}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                padding: '4px 8px',
-                borderRadius: '6px',
-                fontSize: '11px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                background: hudState.isClickThrough ? '#10b981' : 'rgba(255, 255, 255, 0.06)',
-                color: hudState.isClickThrough ? '#ffffff' : '#d4d4d8',
-                border: hudState.isClickThrough
-                  ? '1px solid #059669'
-                  : '1px solid rgba(255, 255, 255, 0.1)',
-              }}
-              title="When Click-Through is ON, clicks pass directly to your browser/IDE (Ctrl+Shift+M)"
-            >
-              <MousePointer size={12} />
-              <span>{hudState.isClickThrough ? 'Click-Through: ON' : 'Click-Through: OFF'}</span>
-            </button>
-
-            {/* Opacity Control Slider */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Sliders size={12} color="#a1a1aa" />
-              <input
-                type="range"
-                min="0.3"
-                max="1.0"
-                step="0.05"
-                value={hudState.opacity}
-                onChange={handleOpacityChange}
-                style={{
-                  width: '80px',
-                  cursor: 'pointer',
-                  accentColor: '#10b981',
-                }}
-                title={`Overlay Opacity: ${Math.round(hudState.opacity * 100)}%`}
-              />
-              <span style={{ fontSize: '10px', color: '#94a3b8', minWidth: '28px', textAlign: 'right' }}>
-                {Math.round(hudState.opacity * 100)}%
-              </span>
-            </div>
-          </div>
-
           {/* Active Hotkey Notification Toast */}
           {lastHotkeyAction && (
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                padding: '6px 10px',
-                borderRadius: '8px',
+                gap: '6px',
+                padding: '4px 8px',
+                borderRadius: '6px',
                 background: 'rgba(16, 185, 129, 0.15)',
                 border: '1px solid rgba(16, 185, 129, 0.3)',
                 color: '#34d399',
-                fontSize: '11px',
+                fontSize: '10px',
                 fontWeight: 600,
                 flexShrink: 0,
               }}
             >
-              <Radio size={13} />
+              <Radio size={11} />
               <span>Hotkey: {lastHotkeyAction.toUpperCase()}</span>
             </div>
           )}
@@ -350,20 +379,22 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({ children }) => {
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '6px',
-                padding: '10px 12px',
-                borderRadius: '10px',
+                padding: '8px 10px',
+                borderRadius: '8px',
                 background: '#151e2e',
                 border: '1px solid rgba(59, 130, 246, 0.3)',
                 flexShrink: 0,
+                maxWidth: '100%',
+                boxSizing: 'border-box',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: '11px', fontWeight: 600, color: '#93c5fd' }}>
-                  Groq API Key (Free Vision &amp; Fast Answers)
+                  Groq API Key (Vision &amp; Answers)
                 </span>
                 <span style={{ fontSize: '9px', color: '#64748b' }}>starts with gsk_</span>
               </div>
-              <div style={{ display: 'flex', gap: '6px' }}>
+              <div style={{ display: 'flex', gap: '6px', width: '100%' }}>
                 <input
                   type="password"
                   placeholder="Paste gsk_... key here"
@@ -371,8 +402,8 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({ children }) => {
                   onChange={(e) => setGroqKey(e.target.value)}
                   style={{
                     flex: 1,
-                    padding: '5px 8px',
-                    borderRadius: '6px',
+                    padding: '4px 8px',
+                    borderRadius: '5px',
                     background: '#090d16',
                     border: '1px solid rgba(255, 255, 255, 0.15)',
                     color: '#ffffff',
@@ -383,12 +414,12 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({ children }) => {
                 <button
                   onClick={handleSaveGroqKey}
                   style={{
-                    padding: '5px 12px',
-                    borderRadius: '6px',
+                    padding: '4px 10px',
+                    borderRadius: '5px',
                     background: savedKeySuccess ? '#10b981' : '#2563eb',
                     color: '#ffffff',
                     border: 'none',
-                    fontSize: '11px',
+                    fontSize: '10.5px',
                     fontWeight: 600,
                     cursor: 'pointer',
                     display: 'flex',
@@ -396,7 +427,7 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({ children }) => {
                     gap: '4px',
                   }}
                 >
-                  {savedKeySuccess ? <Check size={12} /> : null}
+                  {savedKeySuccess ? <Check size={11} /> : null}
                   <span>{savedKeySuccess ? 'Saved' : 'Save'}</span>
                 </button>
               </div>
@@ -405,15 +436,29 @@ export const HUDOverlay: React.FC<HUDOverlayProps> = ({ children }) => {
 
           {/* Collapsible Stealth Hotkey Cheatsheet */}
           {showHotkeys && (
-            <div style={{ flexShrink: 0 }}>
-              <HotkeyCheatsheet />
+            <div style={{ flexShrink: 0, maxWidth: '100%', boxSizing: 'border-box' }}>
+              <HotkeyCheatsheet onClose={() => setShowHotkeys(false)} />
             </div>
           )}
 
-          {/* App Children: AuthStatus, VisionSolutionCard, AIAnswerCard, TranscriptFeed */}
-          {children}
+          {/* Active View Content */}
+          <div
+            style={{
+              flex: 1,
+              width: '100%',
+              maxWidth: '100%',
+              boxSizing: 'border-box',
+              overflowX: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+            }}
+          >
+            {children}
+          </div>
         </div>
       )}
     </div>
   );
 };
+export default HUDOverlay;
